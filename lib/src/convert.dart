@@ -31,7 +31,7 @@ class _NotusMarkdownEncoder extends Converter<Delta, String> {
     NotusAttribute.ol: '1. ',
   };
 
-  Queue<NotusAttribute> currentInlineAttributes;
+  List<NotusAttribute> currentInlineAttributes = <NotusAttribute>[];
 
   @override
   String convert(Delta input) {
@@ -141,13 +141,21 @@ class _NotusMarkdownEncoder extends Converter<Delta, String> {
 
   NotusStyle _writeInline(StringBuffer buffer, String text, NotusStyle style, NotusStyle currentStyle) {
     // First close any current styles if needed
-    for (var value in currentStyle.values) {
+    final markedForRemoval = <NotusAttribute>[];
+    for (var value in currentInlineAttributes.reversed) {
       if (value.scope == NotusAttributeScope.line) continue;
       if (style.containsSame(value)) continue;
       final padding = _trimRight(buffer);
       _writeAttribute(buffer, value, close: true);
       if (padding.isNotEmpty) buffer.write(padding);
+      markedForRemoval.add(value);
     }
+
+    // Make sure to remove all attributes that are marked for removal.
+    for (final value in markedForRemoval) {
+      currentInlineAttributes.remove(value);
+    }
+
     // Now open any new styles.
     for (var value in style.values) {
       if (value.scope == NotusAttributeScope.line) continue;
@@ -176,6 +184,9 @@ class _NotusMarkdownEncoder extends Converter<Delta, String> {
       _writeBlockTag(buffer, attribute as NotusAttribute<String>, close: close);
     } else {
       throw ArgumentError('Cannot handle $attribute');
+    }
+    if (!close) {
+      currentInlineAttributes.add(attribute);
     }
   }
 

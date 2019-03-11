@@ -6,7 +6,7 @@ import 'package:markdown/notus_markdown.dart';
 
 void main() {
   final str = """
-How **_is_ life?**
+How **is _life?_**
 
 Everything is fine here.
 
