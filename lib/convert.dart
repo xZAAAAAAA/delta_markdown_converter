@@ -314,6 +314,10 @@ class NotusConverter implements ast.NodeVisitor {
       delta.insert(lastStr, attributes);
     }
 
+    // List items are missing a newline so we have to add it manually.
+    if (!str.contains('\n') && previousElement.tag == 'li') {
+      delta.insert('\n', activeBlockAttribute?.toJson());
+    }
 
     /*if (activeBlockAttribute != null) {
       final lines = text.text.trim().split('\n');
