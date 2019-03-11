@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' show parseFragment;
-import 'package:markdown/markdown.dart' show markdownToHtml, ExtensionSet;
+import 'package:markdown/notus_markdown.dart' show markdownToHtml, ExtensionSet;
 
 // Locate the "tool" directory. Use mirrors so that this works with the test
 // package, which loads this suite into an isolate.

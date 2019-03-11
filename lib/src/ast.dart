@@ -7,14 +7,16 @@ typedef Node Resolver(String name, [String title]);
 /// Base class for any AST item.
 ///
 /// Roughly corresponds to Node in the DOM. Will be either an Element or Text.
-abstract class Node {
-  void accept(NodeVisitor visitor);
+class Node {
+  void accept(NodeVisitor visitor) {}
 
-  String get textContent;
+  bool isToplevel = false;
+
+  String get textContent { return null; }
 }
 
 /// A named tag that can contain other nodes.
-class Element implements Node {
+class Element extends Node {
   final String tag;
   final List<Node> children;
   final Map<String, String> attributes;
@@ -56,7 +58,7 @@ class Element implements Node {
 }
 
 /// A plain text element.
-class Text implements Node {
+class Text extends Node {
   final String text;
   Text(this.text);
 
@@ -71,7 +73,7 @@ class Text implements Node {
 /// These placeholder nodes should only remain in place while the block nodes
 /// of a document are still being parsed, in order to gather all reference link
 /// definitions.
-class UnparsedContent implements Node {
+class UnparsedContent extends Node {
   final String textContent;
   UnparsedContent(this.textContent);
 

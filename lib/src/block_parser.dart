@@ -150,7 +150,10 @@ class BlockParser {
       for (var syntax in blockSyntaxes) {
         if (syntax.canParse(this)) {
           var block = syntax.parse(this);
-          if (block != null) blocks.add(block);
+          if (block != null) {
+            block.isToplevel = true;
+            blocks.add(block);
+          }
           break;
         }
       }
@@ -351,6 +354,9 @@ class BlockquoteSyntax extends BlockSyntax {
 
     // Recursively parse the contents of the blockquote.
     var children = new BlockParser(childLines, parser.document).parseLines();
+    for (var c in children) {
+      c.isToplevel = false;
+    }
 
     return new Element('blockquote', children);
   }

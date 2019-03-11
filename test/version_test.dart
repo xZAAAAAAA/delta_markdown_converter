@@ -12,7 +12,7 @@ String get _currentDir => p
 
 void main() {
   test('check versions', () {
-    var binary = p.normalize(p.join(_currentDir, '..', 'bin/markdown.dart'));
+    var binary = p.normalize(p.join(_currentDir, '..', 'bin/notus_markdown.dart'));
     var result = Process.runSync('dart', [binary, '--version']);
     expect(result.exitCode, 0);
 
@@ -24,7 +24,7 @@ void main() {
         loadYaml(new File(pubspecFile).readAsStringSync()) as YamlMap;
 
     expect(binVersion, pubspecContent['version'],
-        reason: 'The version reported by bin/markdown.dart should match the '
+        reason: 'The version reported by bin/notus_markdown.dart should match the '
             'version in pubspec. Run `pub run build_runner build` to update.');
   });
 }

@@ -8,7 +8,7 @@ library markdown.test.util;
 import 'dart:mirrors';
 
 import 'package:expected_output/expected_output.dart';
-import 'package:markdown/markdown.dart';
+import 'package:markdown/notus_markdown.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

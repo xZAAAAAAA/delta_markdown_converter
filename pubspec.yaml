@@ -1,9 +1,9 @@
 name: markdown
 version: 2.0.3-dev
 
-description: A library for converting markdown to HTML.
+description: A library for converting Notus to Markdown.
 author: Dart Team <misc@dartlang.org>
-homepage: https://github.com/dart-lang/markdown
+homepage: https://github.com/kolja-esders/notus_markdown
 
 executables:
   markdown:
@@ -14,6 +14,8 @@ environment:
 dependencies:
   args: ^1.0.0
   charcode: ^1.1.0
+  quill_delta: any
+  notus: any
 
 dev_dependencies:
   build_runner: ^1.0.0

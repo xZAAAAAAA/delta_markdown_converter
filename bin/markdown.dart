@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:markdown/markdown.dart';
+import 'package:markdown/notus_markdown.dart';
 
 final extensionSets = <String, ExtensionSet>{
   'none': ExtensionSet.none,
@@ -62,7 +62,7 @@ Future main(List<String> args) async {
 }
 
 void printUsage(ArgParser parser) {
-  print('''Usage: markdown.dart [options] [file]
+  print('''Usage: notus_markdown.dart [options] [file]
 
 Parse [file] as Markdown and print resulting HTML. If [file] is omitted,
 use stdin as input.
