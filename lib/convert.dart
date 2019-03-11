@@ -401,6 +401,15 @@ class NotusConverter implements ast.NodeVisitor {
     final attr = _tagToNotusAttribute(element.tag);
     if (attr == null || !attr.isInline || activeInlineAttributes.last != attr) return;
     activeInlineAttributes.removeLast();
+
+    // Always keep track of the last element.
+    // This becomes relevant if we have something like
+    //
+    // <ul>
+    //   <li>...</li>
+    //   <li>...</li>
+    // </ul>
+    previousElement = element;
   }
 
   /// Uniquifies an id generated from text.
