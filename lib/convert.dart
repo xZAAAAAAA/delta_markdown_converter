@@ -4,10 +4,10 @@ import 'dart:convert';
 import 'package:notus/notus.dart';
 import 'package:quill_delta/quill_delta.dart';
 
-import 'ast.dart' as ast;
+import 'src/ast.dart' as ast;
 
 //import 'block_parser.dart';
-import 'document.dart';
+import 'src/document.dart';
 
 //import 'extension_set.dart';
 //import 'inline_parser.dart';
