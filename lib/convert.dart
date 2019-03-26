@@ -271,8 +271,6 @@ class NotusConverter implements ast.NodeVisitor {
 
     for (final node in nodes) node.accept(this);
 
-    //delta.insert('\n', activeBlockAttribute?.toJson());
-    delta.insert('\n');
     return delta;
   }
 
