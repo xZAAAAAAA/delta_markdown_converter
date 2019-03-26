@@ -271,7 +271,8 @@ class NotusConverter implements ast.NodeVisitor {
 
     for (final node in nodes) node.accept(this);
 
-    delta.insert('\n', activeBlockAttribute?.toJson());
+    //delta.insert('\n', activeBlockAttribute?.toJson());
+    delta.insert('\n');
     return delta;
   }
 
@@ -338,8 +339,11 @@ class NotusConverter implements ast.NodeVisitor {
 
     if (delta.isNotEmpty && _blockTags.firstMatch(element.tag) != null) {
       if (element.isToplevel) {
-        // Finish off the last top level block.
-        delta.insert('\n', activeBlockAttribute?.toJson());
+
+        // If the last active block attribute is not a list, we need to finish it off.
+        if (previousToplevelElement.tag != 'ul' && previousToplevelElement.tag != 'ol') {
+          delta.insert('\n', activeBlockAttribute?.toJson());
+        }
 
         // Only separate the blocks if both are paragraphs.
         if (previousToplevelElement != null && previousToplevelElement.tag == 'p' && element.tag == 'p') {
