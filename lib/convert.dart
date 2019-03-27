@@ -271,6 +271,11 @@ class NotusConverter implements ast.NodeVisitor {
 
     for (final node in nodes) node.accept(this);
 
+    // Ensure the delta ends with a newline.
+    if (delta.length > 0 && delta.last.value != '\n') {
+      delta.insert('\n');
+    }
+
     return delta;
   }
 
@@ -290,7 +295,7 @@ class NotusConverter implements ast.NodeVisitor {
     }*/
 
     var str = text.text;
-    if (str.endsWith('\n')) str = str.substring(0, str.length - 1);
+    //if (str.endsWith('\n')) str = str.substring(0, str.length - 1);
 
     final attributes = Map<String, dynamic>();
     for (final attr in activeInlineAttributes) {
@@ -339,7 +344,7 @@ class NotusConverter implements ast.NodeVisitor {
       if (element.isToplevel) {
 
         // If the last active block attribute is not a list, we need to finish it off.
-        if (previousToplevelElement.tag != 'ul' && previousToplevelElement.tag != 'ol') {
+        if (previousToplevelElement.tag != 'ul' && previousToplevelElement.tag != 'ol' && previousToplevelElement.tag != 'pre') {
           delta.insert('\n', activeBlockAttribute?.toJson());
         }
 
