@@ -273,7 +273,7 @@ class NotusConverter implements ast.NodeVisitor {
 
     // Ensure the delta ends with a newline.
     if (delta.length > 0 && delta.last.value != '\n') {
-      delta.insert('\n');
+      delta.insert('\n', activeBlockAttribute?.toJson());
     }
 
     return delta;
