@@ -263,10 +263,7 @@ class SetextHeaderSyntax extends BlockSyntax {
 
     var contents = new UnparsedContent(lines.join('\n'));
 
-    final el = new Element(tag, [contents]);
-    el.isToplevel = true;
-
-    return el;
+    return new Element(tag, [contents]);
   }
 
   bool _interperableAsParagraph(String line) =>
@@ -303,10 +300,7 @@ class HeaderSyntax extends BlockSyntax {
     parser.advance();
     var level = match[1].length;
     var contents = new UnparsedContent(match[2].trim());
-    final el = new Element('h$level', [contents]);
-    el.isToplevel = true;
-
-    return el;
+    return new Element('h$level', [contents]);
   }
 }
 
@@ -359,14 +353,7 @@ class BlockquoteSyntax extends BlockSyntax {
 
     // Recursively parse the contents of the blockquote.
     var children = new BlockParser(childLines, parser.document).parseLines();
-    for (var c in children) {
-      c.isToplevel = false;
-    }
-
-    final el = Element('blockquote', children);
-    el.isToplevel = true;
-
-    return el;
+    return new Element('blockquote', children);
   }
 }
 
@@ -413,10 +400,7 @@ class CodeBlockSyntax extends BlockSyntax {
     // Escape the code.
     var escaped = escapeHtml(childLines.join('\n'));
 
-    final el = new Element('pre', [new Element.text('code', escaped)]);
-    el.isToplevel = true;
-
-    return el;
+    return new Element('pre', [new Element.text('code', escaped)]);
   }
 }
 
@@ -475,8 +459,6 @@ class FencedCodeBlockSyntax extends BlockSyntax {
     }
 
     var element = new Element('pre', [code]);
-    element.isToplevel = true;
-
     return element;
   }
 }
@@ -734,16 +716,12 @@ abstract class ListSyntax extends BlockSyntax {
       }
     }
 
-    Element el;
     if (listTag == 'ol' && startNumber != 1) {
-      el = new Element(listTag, itemNodes)
+      return new Element(listTag, itemNodes)
         ..attributes['start'] = '$startNumber';
     } else {
-      el = new Element(listTag, itemNodes);
+      return new Element(listTag, itemNodes);
     }
-    el.isToplevel = true;
-
-    return el;
   }
 
   void removeLeadingEmptyLine(ListItem item) {
