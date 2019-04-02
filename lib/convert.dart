@@ -319,7 +319,7 @@ class NotusConverter implements ast.NodeVisitor {
     }
 
     // List items are missing a newline so we have to add it manually.
-    if (!str.contains('\n') && previousElement.tag == 'li') {
+    if (!str.contains('\n') && (previousToplevelElement.tag == 'ol' || previousToplevelElement.tag == 'ul')) {
       delta.insert('\n', activeBlockAttribute?.toJson());
     }
 
@@ -352,7 +352,9 @@ class NotusConverter implements ast.NodeVisitor {
         if (previousToplevelElement != null && previousToplevelElement.tag == 'p' && element.tag == 'p') {
           delta.insert('\n');
         }
-      } else if (element.tag == 'p' && previousElement != null && !previousElement.isToplevel) {
+      } else if (element.tag == 'p' && previousElement != null && !previousElement.isToplevel && !previousElement.children.contains(element)) {
+        // Here we have two children of the same toplevel element. These need to be separated by additional newlines.
+
         // Finish off the last lower-level block.
         delta.insert('\n', activeBlockAttribute?.toJson());
 

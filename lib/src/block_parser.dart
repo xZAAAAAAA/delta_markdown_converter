@@ -151,7 +151,6 @@ class BlockParser {
         if (syntax.canParse(this)) {
           var block = syntax.parse(this);
           if (block != null) {
-            block.isToplevel = true;
             blocks.add(block);
           }
           break;
@@ -264,7 +263,10 @@ class SetextHeaderSyntax extends BlockSyntax {
 
     var contents = new UnparsedContent(lines.join('\n'));
 
-    return new Element(tag, [contents]);
+    final el = new Element(tag, [contents]);
+    el.isToplevel = true;
+
+    return el;
   }
 
   bool _interperableAsParagraph(String line) =>
@@ -301,7 +303,10 @@ class HeaderSyntax extends BlockSyntax {
     parser.advance();
     var level = match[1].length;
     var contents = new UnparsedContent(match[2].trim());
-    return new Element('h$level', [contents]);
+    final el = new Element('h$level', [contents]);
+    el.isToplevel = true;
+
+    return el;
   }
 }
 
@@ -358,7 +363,10 @@ class BlockquoteSyntax extends BlockSyntax {
       c.isToplevel = false;
     }
 
-    return new Element('blockquote', children);
+    final el = Element('blockquote', children);
+    el.isToplevel = true;
+
+    return el;
   }
 }
 
@@ -405,7 +413,10 @@ class CodeBlockSyntax extends BlockSyntax {
     // Escape the code.
     var escaped = escapeHtml(childLines.join('\n'));
 
-    return new Element('pre', [new Element.text('code', escaped)]);
+    final el = new Element('pre', [new Element.text('code', escaped)]);
+    el.isToplevel = true;
+
+    return el;
   }
 }
 
@@ -464,6 +475,7 @@ class FencedCodeBlockSyntax extends BlockSyntax {
     }
 
     var element = new Element('pre', [code]);
+    element.isToplevel = true;
 
     return element;
   }
@@ -722,12 +734,16 @@ abstract class ListSyntax extends BlockSyntax {
       }
     }
 
+    Element el;
     if (listTag == 'ol' && startNumber != 1) {
-      return new Element(listTag, itemNodes)
+      el = new Element(listTag, itemNodes)
         ..attributes['start'] = '$startNumber';
     } else {
-      return new Element(listTag, itemNodes);
+      el = new Element(listTag, itemNodes);
     }
+    el.isToplevel = true;
+
+    return el;
   }
 
   void removeLeadingEmptyLine(ListItem item) {
