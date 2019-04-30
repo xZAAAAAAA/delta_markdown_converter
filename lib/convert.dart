@@ -426,6 +426,12 @@ class NotusConverter implements ast.NodeVisitor {
         return NotusAttribute.code;
       case 'blockquote':
         return NotusAttribute.bq;
+      case 'h1':
+        return NotusAttribute.heading.level1;
+      case 'h2':
+        return NotusAttribute.heading.level2;
+      case 'h3':
+        return NotusAttribute.heading.level3;
     }
 
     return null;
