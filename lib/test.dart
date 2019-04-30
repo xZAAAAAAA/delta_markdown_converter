@@ -206,4 +206,41 @@ paragraph
     expect(res, expected);
   });
 
+  /*
+  test('Render nested lists on the same level', () {
+    final str =
+    """
+* first level
+  * second level
+""";
+
+    final res = c.decode(str);
+
+    final linkAttr = Map<String, dynamic>();
+    linkAttr.addAll(NotusAttribute.link.fromString('https://getspace.app').toJson());
+
+    final expected = Delta();
+    expected.insert('Space', linkAttr);
+    expected.insert('\n');
+
+    expect(res, expected);
+  });*/
+
+  test('Encode an image', () {
+    final input = Delta();
+    final imageAttr = Map<String, dynamic>();
+    imageAttr.addAll(NotusAttribute.embed.image('image.jpg').toJson());
+
+    input.insert('image', imageAttr);
+    input.insert('\n', emptyAttr);
+    final res = c.encode(input);
+
+    final expected =
+    """
+![image](image.jpg)
+""";
+
+    expect(res, expected);
+  });
+
 }

@@ -182,12 +182,21 @@ class _NotusMarkdownEncoder extends Converter<Delta, String> {
       _writeHeadingTag(buffer, attribute as NotusAttribute<int>);
     } else if (attribute.key == NotusAttribute.block.key) {
       _writeBlockTag(buffer, attribute as NotusAttribute<String>, close: close);
-    } else {
-      throw ArgumentError('Cannot handle $attribute');
+    } else if (attribute.key == NotusAttribute.embed.key) {
+      _writeEmbedTag(buffer, attribute as EmbedAttribute, close: close);
+      //throw ArgumentError('Cannot handle $attribute');
     }
     if (!close) {
       currentInlineAttributes.add(attribute);
     }
+  }
+
+  void _writeEmbedTag(StringBuffer buffer, EmbedAttribute attr, {bool close = false}) {
+   if (close) {
+     buffer.write('](${attr.value['source']})');
+   } else {
+     buffer.write('![');
+   }
   }
 
   void _writeBoldTag(StringBuffer buffer) {
