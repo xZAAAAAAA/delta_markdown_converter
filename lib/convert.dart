@@ -192,11 +192,20 @@ class _NotusMarkdownEncoder extends Converter<Delta, String> {
   }
 
   void _writeEmbedTag(StringBuffer buffer, EmbedAttribute attr, {bool close = false}) {
-   if (close) {
-     buffer.write('](${attr.value['source']})');
-   } else {
-     buffer.write('![');
-   }
+    final kImageType = 'image';
+    final kHorizontalRuleType = 'hr';
+
+    final type = attr.value['type'];
+
+    if (type == kImageType) {
+      if (close) {
+        buffer.write('](${attr.value['source']})');
+      } else {
+        buffer.write('![');
+      }
+    } else if (type == kHorizontalRuleType && close) {
+      buffer.write('\n---\n');
+    }
   }
 
   void _writeBoldTag(StringBuffer buffer) {
@@ -258,6 +267,8 @@ Delta convertToNotus(List<ast.Node> nodes) => NotusConverter().convert(nodes);
 
 class NotusConverter implements ast.NodeVisitor {
   static final _blockTags = RegExp('h1|h2|h3|h4|h5|h6|hr|pre|ul|ol|blockquote|p|pre');
+
+  static final _embedTags = RegExp('hr|img');
 
   Delta delta;
 
@@ -364,7 +375,10 @@ class NotusConverter implements ast.NodeVisitor {
     // Keep track of the top-level block attribute.
     if (element.isToplevel) activeBlockAttribute = attr;
 
-    if (_blockTags.firstMatch(element.tag) == null && attr != null) {
+    if (_embedTags.firstMatch(element.tag) != null) {
+      // We write out the element here since the embed has no children or content.
+      delta.insert('\n', attr.toJson());
+    } else if (_blockTags.firstMatch(element.tag) == null && attr != null) {
       activeInlineAttributes.addLast(attr);
     }
 
@@ -444,6 +458,11 @@ class NotusConverter implements ast.NodeVisitor {
       case 'a':
         final href = el.attributes['href'];
         return NotusAttribute.link.fromString(href);
+      case 'img':
+        final href = el.attributes['src'];
+        return EmbedAttribute.image(href);
+      case 'hr':
+        return EmbedAttribute.horizontalRule();
     }
 
     return null;
