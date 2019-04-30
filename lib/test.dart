@@ -188,4 +188,22 @@ paragraph
     expect(res, expected);
   });
 
+  test('Handles links', () {
+    final str =
+    """
+[Space](https://getspace.app)
+""";
+
+    final res = c.decode(str);
+
+    final linkAttr = Map<String, dynamic>();
+    linkAttr.addAll(NotusAttribute.link.fromString('https://getspace.app').toJson());
+
+    final expected = Delta();
+    expected.insert('Space', linkAttr);
+    expected.insert('\n');
+
+    expect(res, expected);
+  });
+
 }

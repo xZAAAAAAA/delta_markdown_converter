@@ -321,7 +321,7 @@ class NotusConverter implements ast.NodeVisitor {
 
   bool visitElementBefore(ast.Element element) {
     // Hackish. Separate block-level elements with newlines.
-    final attr = _tagToNotusAttribute(element.tag);
+    final attr = _tagToNotusAttribute(element);
 
     if (delta.isNotEmpty && _blockTags.firstMatch(element.tag) != null) {
       if (element.isToplevel) {
@@ -382,7 +382,7 @@ class NotusConverter implements ast.NodeVisitor {
       delta.insert('\n', activeBlockAttribute?.toJson());
     }
 
-    final attr = _tagToNotusAttribute(element.tag);
+    final attr = _tagToNotusAttribute(element);
     if (attr == null || !attr.isInline || activeInlineAttributes.last != attr) return;
     activeInlineAttributes.removeLast();
 
@@ -412,8 +412,8 @@ class NotusConverter implements ast.NodeVisitor {
     return suffixedId;
   }
 
-  NotusAttribute _tagToNotusAttribute(String tag) {
-    switch (tag) {
+  NotusAttribute _tagToNotusAttribute(ast.Element el) {
+    switch (el.tag) {
       case 'em':
         return NotusAttribute.italic;
       case 'strong':
@@ -432,6 +432,9 @@ class NotusConverter implements ast.NodeVisitor {
         return NotusAttribute.heading.level2;
       case 'h3':
         return NotusAttribute.heading.level3;
+      case 'a':
+        final href = el.attributes['href'];
+        return NotusAttribute.link.fromString(href);
     }
 
     return null;
