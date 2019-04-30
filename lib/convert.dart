@@ -317,26 +317,9 @@ class NotusConverter implements ast.NodeVisitor {
       final lastStr = str.substring(startIndex);
       delta.insert(lastStr, attributes);
     }
-
-    // List items are missing a newline so we have to add it manually.
-    if (!str.contains('\n') && (previousToplevelElement.tag == 'ol' || previousToplevelElement.tag == 'ul')) {
-      delta.insert('\n', activeBlockAttribute?.toJson());
-    }
-
-    /*if (activeBlockAttribute != null) {
-      final lines = text.text.trim().split('\n');
-      for (var l in lines) {
-        delta.insert(l, attributes);
-        delta.insert('\n', activeBlockAttribute.toJson());
-      }
-    } else {
-      delta.insert(text.text, attributes);
-    }*/
   }
 
   bool visitElementBefore(ast.Element element) {
-
-
     // Hackish. Separate block-level elements with newlines.
     final attr = _tagToNotusAttribute(element.tag);
 
@@ -349,9 +332,15 @@ class NotusConverter implements ast.NodeVisitor {
         }
 
         // Only separate the blocks if both are paragraphs.
-        if (previousToplevelElement != null && previousToplevelElement.tag == 'p' && element.tag == 'p') {
-          delta.insert('\n');
-        }
+        //
+        // TODO(kolja): Determine which behavior we really want here.
+        // We can either insert an additional newline or just have the paragraphs as single lines.
+        // Zefyr will by default render two lines are different paragraphs so for now we will not add
+        // an additonal newline here.
+        //
+        //if (previousToplevelElement != null && previousToplevelElement.tag == 'p' && element.tag == 'p') {
+          //delta.insert('\n');
+        //}
       } else if (element.tag == 'p' && previousElement != null && !previousElement.isToplevel && !previousElement.children.contains(element)) {
         // Here we have two children of the same toplevel element. These need to be separated by additional newlines.
 
@@ -369,19 +358,6 @@ class NotusConverter implements ast.NodeVisitor {
     if (_blockTags.firstMatch(element.tag) == null && attr != null) {
       activeInlineAttributes.addLast(attr);
     }
-
-    // Sort the keys so that we generate stable output.
-    //var attributeNames = element.attributes.keys.toList();
-    //attributeNames.sort((a, b) => a.compareTo(b));
-
-    //for (var name in attributeNames) {
-    //buffer.write(' $name="${element.attributes[name]}"');
-    //}
-
-    // attach header anchor ids generated from text
-    //if (element.generatedId != null) {
-    //buffer.write(' id="${uniquifyId(element.generatedId)}"');
-    //}
 
     previousElement = element;
     if (element.isToplevel) previousToplevelElement = element;
@@ -402,10 +378,9 @@ class NotusConverter implements ast.NodeVisitor {
   }
 
   void visitElementAfter(ast.Element element) {
-    /*if (_isParagraph(element)) {
-      delta.insert('\n\n', Map<String, dynamic>());
-      return;
-    }*/
+    if (element.tag == 'li'  && (previousToplevelElement.tag == 'ol' || previousToplevelElement.tag == 'ul')) {
+      delta.insert('\n', activeBlockAttribute?.toJson());
+    }
 
     final attr = _tagToNotusAttribute(element.tag);
     if (attr == null || !attr.isInline || activeInlineAttributes.last != attr) return;
