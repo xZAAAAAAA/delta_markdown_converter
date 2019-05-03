@@ -256,10 +256,9 @@ class _NotusMarkdownDecoder extends Converter<String, Delta> {
 
   @override
   Delta convert(String markdown) {
-    var document = Document();
+    var document = Document(encodeHtml: false);
     var lines = markdown.replaceAll('\r\n', '\n').split('\n');
     return convertToNotus(document.parseLines(lines));
-    // TODO: Add one more line-ending
   }
 }
 
