@@ -390,7 +390,7 @@ class NotusConverter implements ast.NodeVisitor {
       //buffer.write(' />');
 
       if (element.tag == 'br') {
-        //buffer.write('\n');
+        delta.insert('\n');
       }
 
       return false;
