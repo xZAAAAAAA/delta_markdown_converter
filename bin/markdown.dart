@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:markdown/notus_markdown.dart';
+import 'package:notus_markdown/notus_markdown.dart';
 
 final extensionSets = <String, ExtensionSet>{
   'none': ExtensionSet.none,
