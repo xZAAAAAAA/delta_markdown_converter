@@ -1,11 +1,24 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/quill_delta.dart';
 
-import 'src/ast.dart' as ast;
+import 'ast.dart' as ast;
+import 'document.dart';
 
-class DeltaVisitor implements ast.NodeVisitor {
+class DeltaMarkdownDecoder extends Converter<String, Delta> {
+  @override
+  Delta convert(String input) {
+    final lines = input.replaceAll('\r\n', '\n').split('\n');
+
+    final markdownDocument = Document().parseLines(lines);
+
+    return _DeltaVisitor().convert(markdownDocument);
+  }
+}
+
+class _DeltaVisitor implements ast.NodeVisitor {
   static final _blockTags =
       RegExp('h1|h2|h3|h4|h5|h6|hr|pre|ul|ol|blockquote|p|pre');
 
