@@ -144,8 +144,7 @@ class _DeltaVisitor implements ast.NodeVisitor {
     if (_embedTags.firstMatch(element.tag) != null) {
       // We write out the element here since the embed has no children or
       // content.
-      final kZeroWidthSpace = String.fromCharCode(0x200b);
-      delta.insert(kZeroWidthSpace, attr.toJson());
+      delta.insert(attr.toJson());
     } else if (_blockTags.firstMatch(element.tag) == null && attr != null) {
       activeInlineAttributes.addLast(attr);
     }
