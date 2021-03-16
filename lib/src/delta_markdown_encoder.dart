@@ -8,15 +8,7 @@ import 'package:flutter_quill/models/quill_delta.dart';
 class DeltaMarkdownEncoder extends Converter<Delta, String> {
   static const _lineFeedAsciiCode = 0x0A;
 
-  static const kBold = 'strong';
-  static const kItalic = 'em';
-  static final kSimpleBlocks = <Attribute, String>{
-    Attribute.blockQuote: 'blockquote',
-    Attribute.ul: 'ul',
-    Attribute.ol: 'ol',
-  };
-
-  StringBuffer markdown;
+  StringBuffer markdownBuffer;
   StringBuffer lineBuffer;
 
   Attribute<String> currentBlockStyle;
@@ -30,7 +22,7 @@ class DeltaMarkdownEncoder extends Converter<Delta, String> {
     // Iterates through all operations of the delta.
     final iterator = DeltaIterator(input);
 
-    markdown = StringBuffer();
+    markdownBuffer = StringBuffer();
     lineBuffer = StringBuffer();
 
     currentInlineStyle = Style();
@@ -39,74 +31,91 @@ class DeltaMarkdownEncoder extends Converter<Delta, String> {
 
     while (iterator.hasNext) {
       final operation = iterator.next();
-      final operationData = operation.data as String; // Hope this is a String
 
-      final lineFeedPosition = operationData.indexOf('\n');
-      final containsLinefeed = lineFeedPosition != -1;
+      if (operation.data is String) {
+        final operationData = operation.data as String;
 
-      if (containsLinefeed) {
-        _handleInline(operationData, operation.attributes);
-      } else {
-        final span = StringBuffer();
+        if (!operationData.contains('\n')) {
+          _handleInline(lineBuffer, operationData, operation.attributes);
+        } else {
+          final span = StringBuffer();
 
-        for (var i = 0; i < operationData.length; i++) {
-          if (operationData.codeUnitAt(i) == _lineFeedAsciiCode) {
-            if (span.isNotEmpty) {
-              // Write the span if it's not empty.
-              _handleInline(span.toString(), operation.attributes);
+          for (var i = 0; i < operationData.length; i++) {
+            if (operationData.codeUnitAt(i) == _lineFeedAsciiCode) {
+              if (span.isNotEmpty) {
+                // Write the span if it's not empty.
+                _handleInline(
+                    lineBuffer, span.toString(), operation.attributes);
+              }
+              // Close any open inline styles.
+              _handleInline(lineBuffer, '', null);
+              _handleLine(operation.attributes);
+              span.clear();
+            } else {
+              span.writeCharCode(operationData.codeUnitAt(i));
             }
-            // Close any open inline styles.
-            _handleInline('', null);
-            _handleLine(operation.attributes);
-            span.clear();
-          } else {
-            span.writeCharCode(operationData.codeUnitAt(i));
+          }
+
+          // Remaining span
+          if (span.isNotEmpty) {
+            _handleInline(lineBuffer, span.toString(), operation.attributes);
           }
         }
+      } else {
+        // Embeddable
+        final embed = BlockEmbed(
+          (operation.data as Map).keys.first as String,
+          (operation.data as Map).values.first as String,
+        );
 
-        // Remaining span
-        if (span.isNotEmpty) {
-          _handleInline(span.toString(), operation.attributes);
+        if (embed.type == 'image') {
+          _writeEmbedTag(lineBuffer, embed);
+          _writeEmbedTag(lineBuffer, embed, close: true);
         }
+        /*else if (attribute.key == Attribute.embed.key) {
+          _writeEmbedTag(buffer, attribute as EmbedAttribute, close: close);
+        }*/
       }
     }
 
     _handleBlock(currentBlockStyle); // Close the last block
 
-    return markdown.toString().replaceAll('\n', '<br>');
+    return markdownBuffer.toString();
   }
 
-  void _handleInline(String text, Map<String, dynamic> attributes) {
+  void _handleInline(
+      StringBuffer buffer, String text, Map<String, dynamic> attributes) {
     final style = Style.fromJson(attributes);
 
-    Attribute wasA;
     // First close any current styles if needed
+    final markedForRemoval = <Attribute>[];
     for (final value in currentInlineStyle.attributes.values) {
-      if (value.scope == AttributeScope.INLINE) {
-        continue;
-      }
-      if (value.key == 'a') {
-        wasA = value;
+      // TODO(tillf): Maybe reverse?
+      // TODO(tillf): Is block correct?
+      if (value.scope == AttributeScope.BLOCK) {
         continue;
       }
       if (style.containsKey(value.key)) {
         continue;
       }
 
-      final padding = _trimRight(lineBuffer);
-      _writeAttribute(lineBuffer, value, close: true);
+      final padding = _trimRight(buffer);
+      _writeAttribute(buffer, value, close: true);
       if (padding.isNotEmpty) {
-        lineBuffer.write(padding);
+        buffer.write(padding);
       }
+      markedForRemoval.add(value);
     }
 
-    if (wasA != null) {
-      _writeAttribute(lineBuffer, wasA, close: true);
+    // Make sure to remove all attributes that are marked for removal.
+    for (final value in markedForRemoval) {
+      currentInlineStyle.attributes.removeWhere((_, v) => v == value);
     }
 
     // Now open any new styles.
     for (final attribute in style.attributes.values) {
-      if (attribute.scope == AttributeScope.INLINE) {
+      // TODO(tillf): Is block correct?
+      if (attribute.scope == AttributeScope.BLOCK) {
         continue;
       }
       if (currentInlineStyle.containsKey(attribute.key)) {
@@ -116,13 +125,13 @@ class DeltaMarkdownEncoder extends Converter<Delta, String> {
       text = text.trimLeft();
       final padding = ' ' * (originalText.length - text.length);
       if (padding.isNotEmpty) {
-        lineBuffer.write(padding);
+        buffer.write(padding);
       }
-      _writeAttribute(lineBuffer, attribute);
+      _writeAttribute(buffer, attribute);
     }
 
     // Write the text itself
-    lineBuffer.write(text);
+    buffer.write(text);
     currentInlineStyle = style;
   }
 
@@ -148,53 +157,44 @@ class DeltaMarkdownEncoder extends Converter<Delta, String> {
       return; // Empty block
     }
 
+    // If there was a block before this one, add empty line between the blocks
+    if (markdownBuffer.isNotEmpty) {
+      markdownBuffer.writeln();
+    }
+
     if (blockStyle == null) {
-      markdown
-        ..write(currentBlockLines.join('\n\n'))
+      markdownBuffer
+        ..write(currentBlockLines.join('\n'))
         ..writeln();
     } else if (blockStyle == Attribute.codeBlock) {
-      _writeAttribute(markdown, blockStyle);
-      markdown.write(currentBlockLines.join('\n'));
-      _writeAttribute(markdown, blockStyle, close: true);
-      markdown.writeln();
-    } else if (blockStyle == Attribute.blockQuote) {
-      _writeAttribute(markdown, blockStyle);
-      markdown.write(currentBlockLines.join('\n'));
-      _writeAttribute(markdown, blockStyle, close: true);
-      markdown.writeln();
-    } else if (blockStyle == Attribute.ol || blockStyle == Attribute.ul) {
-      _writeAttribute(markdown, blockStyle);
-      markdown
-        ..write('<li>')
-        ..write(currentBlockLines.join('</li><li>'))
-        ..write('</li>');
-      _writeAttribute(markdown, blockStyle, close: true);
-      markdown.writeln();
+      _writeAttribute(markdownBuffer, blockStyle);
+      markdownBuffer.write(currentBlockLines.join('\n'));
+      _writeAttribute(markdownBuffer, blockStyle, close: true);
+      markdownBuffer.writeln();
     } else {
+      // Dealing with lists or a quote.
       for (final line in currentBlockLines) {
-        _writeBlockTag(markdown, blockStyle);
-        markdown
+        _writeBlockTag(markdownBuffer, blockStyle);
+        markdownBuffer
           ..write(line)
           ..writeln();
       }
     }
-    markdown.writeln();
   }
 
   String _writeLine(String text, Style style) {
     final buffer = StringBuffer();
     // Open heading
-    // if (style.containsKey(Attribute.heading)) { // <- We don't have heading?
-    //   _writeAttribute(buffer, style.get<int>(Attribute.heading));
-    // }
+    if (style.containsKey(Attribute.h1.key)) {
+      _writeAttribute(buffer, Attribute.h1);
+    } else if (style.containsKey(Attribute.h2.key)) {
+      _writeAttribute(buffer, Attribute.h2);
+    } else if (style.containsKey(Attribute.h3.key)) {
+      _writeAttribute(buffer, Attribute.h3);
+    }
+
     // Write the text itself
-    // ignore: cascade_invocations
     buffer.write(text);
-    // Close the heading
-    // if (style.contains(Attribute.heading)) { // <- We don't have heading?
-    // ignore: lines_longer_than_80_chars
-    //   _writeAttribute(buffer, style.get<int>(Attribute.heading), close: true);
-    // }
     return buffer.toString();
   }
 
@@ -211,48 +211,74 @@ class DeltaMarkdownEncoder extends Converter<Delta, String> {
     return ' ' * (text.length - result.length);
   }
 
-  void _writeAttribute(StringBuffer buffer, Attribute attribute,
-      {bool close = false}) {
-    if (attribute == Attribute.bold) {
-      buffer.write(!close ? '<$kBold>' : '</$kBold>');
-    } else if (attribute == Attribute.italic) {
-      buffer.write(!close ? '<$kItalic>' : '</$kItalic>');
+  void _writeAttribute(
+    StringBuffer buffer,
+    Attribute attribute, {
+    bool close = false,
+  }) {
+    if (attribute.key == Attribute.bold.key) {
+      buffer.write('**');
+    } else if (attribute.key == Attribute.italic.key) {
+      buffer.write('_');
     } else if (attribute.key == Attribute.link.key) {
-      buffer.write(!close
-          ? '<a href="${(attribute as Attribute<String>).value}">'
-          : '</a>');
-      // ignore: lines_longer_than_80_chars
-      // } else if (attribute.key == Attribute.heading.key) { //<- We don't have heading
-      // buffer.write(!close ? '<h${attribute.value}>' : '</h${attribute.value}>');
-      // } else if (attribute.key == Attribute.block.key) {
-      // _writeBlockTag(buffer, attribute as Attribute<String>, close: close);
-      // } else if (attribute.key == Attribute.embed.key) {
-      // _writeEmbedTag(buffer, attribute as EmbedAttribute, close: close);
+      buffer.write(!close ? '[' : '](${attribute.value})');
+    } else if (attribute.key == Attribute.h1.key) {
+      buffer.write('# ');
+    } else if (attribute.key == Attribute.h2.key) {
+      buffer.write('## ');
+    } else if (attribute.key == Attribute.h3.key) {
+      buffer.write('### ');
     } else {
       throw ArgumentError('Cannot handle $attribute');
     }
   }
 
-  void _writeBlockTag(StringBuffer buffer, Attribute block,
-      {bool close = false}) {
+  void _writeBlockTag(
+    StringBuffer buffer,
+    Attribute block, {
+    bool close = false,
+  }) {
     if (block == Attribute.codeBlock) {
-      buffer.write(!close ? '\n<code>' : '</code>\n');
+      buffer.write(!close ? '\n```' : '```\n');
+    } else if (block == Attribute.blockQuote) {
+      if (close) {
+        return; // no close tag needed for simple blocks.
+      }
+
+      buffer.write('>');
+    } else if (block == Attribute.ul) {
+      if (close) {
+        return; // no close tag needed for simple blocks.
+      }
+
+      buffer.write('*');
+    } else if (block == Attribute.ol) {
+      if (close) {
+        return; // no close tag needed for simple blocks.
+      }
+
+      buffer.write('1.');
     } else {
-      buffer.write(
-          !close ? '<${kSimpleBlocks[block]}>' : '</${kSimpleBlocks[block]}>');
+      throw ArgumentError('Cannot handle block $block');
     }
   }
 
-  void _writeEmbedTag(StringBuffer buffer, BlockEmbed embed,
-      {bool close = false}) {
-    if (close) {
-      return;
-    }
+  void _writeEmbedTag(
+    StringBuffer buffer,
+    BlockEmbed embed, {
+    bool close = false,
+  }) {
+    const kImageType = 'image';
+    const kHorizontalRuleType = 'hr';
 
-    if (embed.type == BlockEmbed.horizontalRule.type) {
-      buffer.write('<hr>');
-    } else if (embed.type == BlockEmbed.image('').type) {
-      buffer.write('<img src="${embed.data}">');
+    if (embed.type == kImageType) {
+      if (close) {
+        buffer.write('](${embed.data})');
+      } else {
+        buffer.write('![');
+      }
+    } else if (embed.type == kHorizontalRuleType && close) {
+      buffer.write('\n---\n');
     }
   }
 }
