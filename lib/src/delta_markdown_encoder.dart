@@ -225,6 +225,8 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
       buffer.write('_');
     } else if (attribute.key == Attribute.link.key) {
       buffer.write(!close ? '[' : '](${attribute.value})');
+    } else if (attribute == Attribute.codeBlock) {
+      buffer.write(!close ? '```\n' : '\n```');
     } else {
       throw ArgumentError('Cannot handle $attribute');
     }
@@ -235,25 +237,15 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     Attribute block, {
     bool close = false,
   }) {
-    if (block == Attribute.codeBlock) {
-      buffer.write(!close ? '\n```' : '```\n');
-    } else if (block == Attribute.blockQuote) {
-      if (close) {
-        return; // no close tag needed for simple blocks.
-      }
+    if (close) {
+      return; // no close tag needed for simple blocks.
+    }
 
+    if (block == Attribute.blockQuote) {
       buffer.write('> ');
     } else if (block == Attribute.ul) {
-      if (close) {
-        return; // no close tag needed for simple blocks.
-      }
-
       buffer.write('* ');
     } else if (block == Attribute.ol) {
-      if (close) {
-        return; // no close tag needed for simple blocks.
-      }
-
       buffer.write('1. ');
     } else if (block.key == Attribute.h1.key && block.value == 1) {
       buffer.write('# ');
