@@ -84,7 +84,7 @@ void main() {
   test('Works on one line with unordered list', () {
     const delta =
         r'[{"insert":"Test"},{"insert":"\n","attributes":{"list":"bullet"}}]';
-    const expected = '- Test\n';
+    const expected = '* Test\n';
 
     final result = deltaToMarkdown(delta);
 
