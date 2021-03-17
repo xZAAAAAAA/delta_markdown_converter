@@ -74,7 +74,7 @@ void main() {
   test('Works on one line with ordered list', () {
     const markdown = '1. Test\n';
     const expected =
-        r'[{"insert":"Test"},{"insert":"\n","attributes":{"ordered":true}}]';
+        r'[{"insert":"Test"},{"insert":"\n","attributes":{"list":"ordered"}}]';
 
     final result = markdownToDelta(markdown);
 
@@ -84,7 +84,7 @@ void main() {
   test('Works on one line with unordered list', () {
     const markdown = '- Test\n';
     const expected =
-        r'[{"insert":"Test"},{"insert":"\n","attributes":{"bullet":true}}]';
+        r'[{"insert":"Test"},{"insert":"\n","attributes":{"list":"bullet"}}]';
 
     final result = markdownToDelta(markdown);
 
