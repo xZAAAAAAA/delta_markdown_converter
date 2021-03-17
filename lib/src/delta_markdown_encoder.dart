@@ -195,17 +195,6 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
 
   String _writeLine(String text, Style style) {
     final buffer = StringBuffer();
-    // Open heading
-    if (style.containsKey(Attribute.h1.key) &&
-        style.attributes[Attribute.h1.key].value == 1) {
-      _writeAttribute(buffer, Attribute.h1);
-    } else if (style.containsKey(Attribute.h2.key) &&
-        style.attributes[Attribute.h1.key].value == 2) {
-      _writeAttribute(buffer, Attribute.h2);
-    } else if (style.containsKey(Attribute.h3.key) &&
-        style.attributes[Attribute.h1.key].value == 3) {
-      _writeAttribute(buffer, Attribute.h3);
-    }
 
     // Write the text itself
     buffer.write(text);
@@ -236,12 +225,6 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
       buffer.write('_');
     } else if (attribute.key == Attribute.link.key) {
       buffer.write(!close ? '[' : '](${attribute.value})');
-    } else if (attribute.key == Attribute.h1.key && attribute.value == 1) {
-      buffer.write('# ');
-    } else if (attribute.key == Attribute.h2.key && attribute.value == 2) {
-      buffer.write('## ');
-    } else if (attribute.key == Attribute.h3.key && attribute.value == 3) {
-      buffer.write('### ');
     } else {
       throw ArgumentError('Cannot handle $attribute');
     }
@@ -272,6 +255,12 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
       }
 
       buffer.write('1. ');
+    } else if (block.key == Attribute.h1.key && block.value == 1) {
+      buffer.write('# ');
+    } else if (block.key == Attribute.h2.key && block.value == 2) {
+      buffer.write('## ');
+    } else if (block.key == Attribute.h3.key && block.value == 3) {
+      buffer.write('### ');
     } else {
       throw ArgumentError('Cannot handle block $block');
     }
