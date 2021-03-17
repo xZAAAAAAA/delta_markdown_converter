@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'ast.dart';
 import 'block_parser.dart';
 import 'document.dart';
@@ -18,46 +16,52 @@ String markdownToHtml(String markdown,
     Resolver linkResolver,
     Resolver imageLinkResolver,
     bool inlineOnly = false}) {
-  var document = new Document(
+  final document = Document(
       blockSyntaxes: blockSyntaxes,
       inlineSyntaxes: inlineSyntaxes,
       extensionSet: extensionSet,
       linkResolver: linkResolver,
       imageLinkResolver: imageLinkResolver);
 
-  if (inlineOnly) return renderToHtml(document.parseInline(markdown));
+  if (inlineOnly) {
+    return renderToHtml(document.parseInline(markdown));
+  }
 
   // Replace windows line endings with unix line endings, and split.
-  var lines = markdown.replaceAll('\r\n', '\n').split('\n');
+  final lines = markdown.replaceAll('\r\n', '\n').split('\n');
 
-  return renderToHtml(document.parseLines(lines)) + '\n';
+  return '${renderToHtml(document.parseLines(lines))}\n';
 }
 
 /// Renders [nodes] to HTML.
-String renderToHtml(List<Node> nodes) => new HtmlRenderer().render(nodes);
+String renderToHtml(List<Node> nodes) => HtmlRenderer().render(nodes);
 
 /// Translates a parsed AST to HTML.
 class HtmlRenderer implements NodeVisitor {
-  static final _blockTags = new RegExp('blockquote|h1|h2|h3|h4|h5|h6|hr|p|pre');
+  HtmlRenderer();
+
+  static final _blockTags = RegExp('blockquote|h1|h2|h3|h4|h5|h6|hr|p|pre');
 
   StringBuffer buffer;
   Set<String> uniqueIds;
 
-  HtmlRenderer();
-
   String render(List<Node> nodes) {
-    buffer = new StringBuffer();
-    uniqueIds = new LinkedHashSet<String>();
+    buffer = StringBuffer();
+    uniqueIds = <String>{};
 
-    for (final node in nodes) node.accept(this);
+    for (final node in nodes) {
+      node.accept(this);
+    }
 
     return buffer.toString();
   }
 
+  @override
   void visitText(Text text) {
     buffer.write(text.text);
   }
 
+  @override
   bool visitElementBefore(Element element) {
     // Hackish. Separate block-level elements with newlines.
     if (buffer.isNotEmpty && _blockTags.firstMatch(element.tag) != null) {
@@ -67,10 +71,10 @@ class HtmlRenderer implements NodeVisitor {
     buffer.write('<${element.tag}');
 
     // Sort the keys so that we generate stable output.
-    var attributeNames = element.attributes.keys.toList();
-    attributeNames.sort((a, b) => a.compareTo(b));
+    final attributeNames = element.attributes.keys.toList()
+      ..sort((a, b) => a.compareTo(b));
 
-    for (var name in attributeNames) {
+    for (final name in attributeNames) {
       buffer.write(' $name="${element.attributes[name]}"');
     }
 
@@ -94,6 +98,7 @@ class HtmlRenderer implements NodeVisitor {
     }
   }
 
+  @override
   void visitElementAfter(Element element) {
     buffer.write('</${element.tag}>');
   }

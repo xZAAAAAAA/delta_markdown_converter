@@ -9,17 +9,6 @@ import 'inline_parser.dart';
 
 /// Maintains the context needed to parse a Markdown document.
 class Document {
-  final Map<String, LinkReference> linkReferences = <String, LinkReference>{};
-  final ExtensionSet extensionSet;
-  final Resolver linkResolver;
-  final Resolver imageLinkResolver;
-  final bool encodeHtml;
-  final _blockSyntaxes = new Set<BlockSyntax>();
-  final _inlineSyntaxes = new Set<InlineSyntax>();
-
-  Iterable<BlockSyntax> get blockSyntaxes => _blockSyntaxes;
-  Iterable<InlineSyntax> get inlineSyntaxes => _inlineSyntaxes;
-
   Document(
       {Iterable<BlockSyntax> blockSyntaxes,
       Iterable<InlineSyntax> inlineSyntaxes,
@@ -27,18 +16,29 @@ class Document {
       this.linkResolver,
       this.imageLinkResolver,
       this.encodeHtml = true})
-      : this.extensionSet = extensionSet ?? ExtensionSet.commonMark {
-    this._blockSyntaxes
+      : extensionSet = extensionSet ?? ExtensionSet.commonMark {
+    _blockSyntaxes
       ..addAll(blockSyntaxes ?? [])
       ..addAll(this.extensionSet.blockSyntaxes);
-    this._inlineSyntaxes
+    _inlineSyntaxes
       ..addAll(inlineSyntaxes ?? [])
       ..addAll(this.extensionSet.inlineSyntaxes);
   }
 
+  final Map<String, LinkReference> linkReferences = <String, LinkReference>{};
+  final ExtensionSet extensionSet;
+  final Resolver linkResolver;
+  final Resolver imageLinkResolver;
+  final bool encodeHtml;
+  final _blockSyntaxes = <BlockSyntax>{};
+  final _inlineSyntaxes = <InlineSyntax>{};
+
+  Iterable<BlockSyntax> get blockSyntaxes => _blockSyntaxes;
+  Iterable<InlineSyntax> get inlineSyntaxes => _inlineSyntaxes;
+
   /// Parses the given [lines] of Markdown to a series of AST nodes.
   List<Node> parseLines(List<String> lines) {
-    var nodes = new BlockParser(lines, this).parseLines();
+    final nodes = BlockParser(lines, this).parseLines();
     // Make sure to mark the top level nodes as such.
     for (final n in nodes) {
       n.isToplevel = true;
@@ -48,15 +48,16 @@ class Document {
   }
 
   /// Parses the given inline Markdown [text] to a series of AST nodes.
-  List<Node> parseInline(String text) => new InlineParser(text, this).parse();
+  List<Node> parseInline(String text) => InlineParser(text, this).parse();
 
   void _parseInlineContent(List<Node> nodes) {
     for (var i = 0; i < nodes.length; i++) {
-      var node = nodes[i];
+      final node = nodes[i];
       if (node is UnparsedContent) {
-        var inlineNodes = parseInline(node.textContent);
-        nodes.removeAt(i);
-        nodes.insertAll(i, inlineNodes);
+        final inlineNodes = parseInline(node.textContent);
+        nodes
+          ..removeAt(i)
+          ..insertAll(i, inlineNodes);
         i += inlineNodes.length - 1;
       } else if (node is Element && node.children != null) {
         _parseInlineContent(node.children);
@@ -68,6 +69,12 @@ class Document {
 /// A [link reference
 /// definition](http://spec.commonmark.org/0.28/#link-reference-definitions).
 class LinkReference {
+  /// Construct a [LinkReference], with all necessary fields.
+  ///
+  /// If the parsed link reference definition does not include a title, use
+  /// `null` for the [title] parameter.
+  LinkReference(this.label, this.destination, this.title);
+
   /// The [link label](http://spec.commonmark.org/0.28/#link-label).
   ///
   /// Temporarily, this class is also being used to represent the link data for
@@ -80,10 +87,4 @@ class LinkReference {
 
   /// The [link title](http://spec.commonmark.org/0.28/#link-title).
   final String title;
-
-  /// Construct a new [LinkReference], with all necessary fields.
-  ///
-  /// If the parsed link reference definition does not include a title, use
-  /// `null` for the [title] parameter.
-  LinkReference(this.label, this.destination, this.title);
 }

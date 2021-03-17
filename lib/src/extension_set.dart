@@ -7,6 +7,8 @@ import 'inline_parser.dart';
 /// For example, the [gitHubFlavored] set of syntax extensions allows users to
 /// output HTML from their Markdown in a similar fashion to GitHub's parsing.
 class ExtensionSet {
+  ExtensionSet(this.blockSyntaxes, this.inlineSyntaxes);
+
   /// The [ExtensionSet.none] extension set renders Markdown similar to
   /// [Markdown.pl].
   ///
@@ -15,13 +17,13 @@ class ExtensionSet {
   /// fenced code blocks, or inline HTML.
   ///
   /// [Markdown.pl]: http://daringfireball.net/projects/markdown/syntax
-  static final ExtensionSet none = new ExtensionSet([], []);
+  static final ExtensionSet none = ExtensionSet([], []);
 
   /// The [commonMark] extension set is close to compliance with [CommonMark].
   ///
   /// [CommonMark]: http://commonmark.org/
-  static final ExtensionSet commonMark = new ExtensionSet(
-      [const FencedCodeBlockSyntax()], [new InlineHtmlSyntax()]);
+  static final ExtensionSet commonMark =
+      ExtensionSet([const FencedCodeBlockSyntax()], [InlineHtmlSyntax()]);
 
   /// The [gitHubWeb] extension set renders Markdown similarly to GitHub.
   ///
@@ -32,33 +34,31 @@ class ExtensionSet {
   /// linkable IDs.)
   ///
   /// [GitHub flavored Markdown]: https://github.github.com/gfm/
-  static final ExtensionSet gitHubWeb = new ExtensionSet([
+  static final ExtensionSet gitHubWeb = ExtensionSet([
     const FencedCodeBlockSyntax(),
     const HeaderWithIdSyntax(),
     const SetextHeaderWithIdSyntax(),
     const TableSyntax()
   ], [
-    new InlineHtmlSyntax(),
-    new StrikethroughSyntax(),
-    new EmojiSyntax(),
-    new AutolinkExtensionSyntax(),
+    InlineHtmlSyntax(),
+    StrikethroughSyntax(),
+    EmojiSyntax(),
+    AutolinkExtensionSyntax(),
   ]);
 
   /// The [gitHubFlavored] extension set is close to compliance with the [GitHub
   /// flavored Markdown spec].
   ///
   /// [GitHub flavored Markdown]: https://github.github.com/gfm/
-  static final ExtensionSet gitHubFlavored = new ExtensionSet([
+  static final ExtensionSet gitHubFlavored = ExtensionSet([
     const FencedCodeBlockSyntax(),
     const TableSyntax()
   ], [
-    new InlineHtmlSyntax(),
-    new StrikethroughSyntax(),
-    new AutolinkExtensionSyntax(),
+    InlineHtmlSyntax(),
+    StrikethroughSyntax(),
+    AutolinkExtensionSyntax(),
   ]);
 
   final List<BlockSyntax> blockSyntaxes;
   final List<InlineSyntax> inlineSyntaxes;
-
-  ExtensionSet(this.blockSyntaxes, this.inlineSyntaxes);
 }

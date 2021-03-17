@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-typedef Node Resolver(String name, [String title]);
+typedef Resolver = Node Function(String name, [String title]);
 
 /// Base class for any AST item.
 ///
@@ -12,16 +12,13 @@ class Node {
 
   bool isToplevel = false;
 
-  String get textContent { return null; }
+  String get textContent {
+    return null;
+  }
 }
 
 /// A named tag that can contain other nodes.
 class Element extends Node {
-  final String tag;
-  final List<Node> children;
-  final Map<String, String> attributes;
-  String generatedId;
-
   /// Instantiates a [tag] Element with [children].
   Element(this.tag, this.children) : attributes = <String, String>{};
 
@@ -37,33 +34,45 @@ class Element extends Node {
 
   /// Instantiates a [tag] Element with a single Text child.
   Element.text(this.tag, String text)
-      : children = [new Text(text)],
+      : children = [Text(text)],
         attributes = {};
+
+  final String tag;
+  final List<Node> children;
+  final Map<String, String> attributes;
+  String generatedId;
 
   /// Whether this element is self-closing.
   bool get isEmpty => children == null;
 
+  @override
   void accept(NodeVisitor visitor) {
     if (visitor.visitElementBefore(this)) {
       if (children != null) {
-        for (var child in children) child.accept(visitor);
+        for (final child in children) {
+          child.accept(visitor);
+        }
       }
       visitor.visitElementAfter(this);
     }
   }
 
+  @override
   String get textContent => children == null
       ? ''
-      : children.map((Node child) => child.textContent).join('');
+      : children.map((child) => child.textContent).join('');
 }
 
 /// A plain text element.
 class Text extends Node {
-  final String text;
   Text(this.text);
 
+  final String text;
+
+  @override
   void accept(NodeVisitor visitor) => visitor.visitText(this);
 
+  @override
   String get textContent => text;
 }
 
@@ -74,10 +83,13 @@ class Text extends Node {
 /// of a document are still being parsed, in order to gather all reference link
 /// definitions.
 class UnparsedContent extends Node {
-  final String textContent;
   UnparsedContent(this.textContent);
 
-  void accept(NodeVisitor visitor) => null;
+  @override
+  final String textContent;
+
+  @override
+  void accept(NodeVisitor visitor);
 }
 
 /// Visitor pattern for the AST.
