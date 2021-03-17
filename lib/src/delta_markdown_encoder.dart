@@ -42,20 +42,8 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
         } else {
           _handleLine(operationData, operation.attributes);
         }
-      } else if (operation.data is Map) {
-        // Embeddable
-        final embed = BlockEmbed(
-          (operation.data as Map).keys.first as String,
-          (operation.data as Map).values.first as String,
-        );
-
-        if (embed.type == 'image') {
-          _writeEmbedTag(lineBuffer, embed);
-          _writeEmbedTag(lineBuffer, embed, close: true);
-        }
-        /*else if (attribute.key == Attribute.embed.key) {
-          _writeEmbedTag(buffer, attribute as EmbedAttribute, close: close);
-        }*/
+      } else if (operation.data is Map<String, dynamic>) {
+        _handleEmbed(operation.data as Map<String, dynamic>);
       } else {
         throw ArgumentError('Unexpected formatting of the input delta string.');
       }
@@ -161,6 +149,18 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     if (span.isNotEmpty) {
       _handleInline(lineBuffer, span.toString(), attributes);
     }
+  }
+
+  void _handleEmbed(Map<String, dynamic> data) {
+    final embed = BlockEmbed(data.keys.first, data.values.first as String);
+
+    if (embed.type == 'image') {
+      _writeEmbedTag(lineBuffer, embed);
+      _writeEmbedTag(lineBuffer, embed, close: true);
+    }
+    /*else if (attribute.key == Attribute.embed.key) {
+          _writeEmbedTag(buffer, attribute as EmbedAttribute, close: close);
+        }*/
   }
 
   void _handleBlock(Attribute blockStyle) {
