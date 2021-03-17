@@ -121,11 +121,11 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
         // Close any open inline styles.
         _handleInline(lineBuffer, '', null);
 
-        final lineBlock =
-            Style.fromJson(attributes).attributes.values.singleWhere(
-                  (a) => a.scope == AttributeScope.BLOCK,
-                  orElse: () => null
-                );
+        final lineBlock = Style.fromJson(attributes)
+            .attributes
+            .values
+            .singleWhere((a) => a.scope == AttributeScope.BLOCK,
+                orElse: () => null);
 
         if (lineBlock == currentBlockStyle) {
           currentBlockLines.add(lineBuffer.toString());
@@ -158,9 +158,6 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
       _writeEmbedTag(lineBuffer, embed);
       _writeEmbedTag(lineBuffer, embed, close: true);
     }
-    /*else if (attribute.key == Attribute.embed.key) {
-          _writeEmbedTag(buffer, attribute as EmbedAttribute, close: close);
-        }*/
   }
 
   void _handleBlock(Attribute blockStyle) {
