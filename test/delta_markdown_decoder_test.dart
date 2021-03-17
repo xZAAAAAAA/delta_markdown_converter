@@ -1,208 +1,123 @@
-import 'package:flutter_quill/models/documents/attribute.dart';
-import 'package:flutter_quill/models/quill_delta.dart';
 import 'package:delta_markdown/delta_markdown.dart';
 import 'package:test/test.dart';
 
 void main() {
-  const c = DeltaMarkdownCodec();
+  test('Works on one line strings', () {
+    const markdown = 'Test\n';
+    const expected = '[{"insert":"Test\\n"}]';
 
-  final codeAttr = <String, dynamic>{}..addAll(Attribute.codeBlock.toJson());
-
-  final ulAttr = <String, dynamic>{}..addAll(Attribute.ul.toJson());
-
-  final olAttr = <String, dynamic>{}..addAll(Attribute.ol.toJson());
-
-  final italicAttr = <String, dynamic>{}..addAll(Attribute.italic.toJson());
-
-  final boldAttr = <String, dynamic>{}..addAll(Attribute.bold.toJson());
-
-  final heading1Attr = <String, dynamic>{}..addAll(Attribute.h1.toJson());
-
-  // final heading2Attr = <String, dynamic>{}..addAll(Attribute.h2.toJson());
-
-  final heading3Attr = <String, dynamic>{}..addAll(Attribute.h3.toJson());
-
-  test('Expect two inserts from one given markdown line', () {
-    const str = 'Test';
-    final expected = Delta()..insert('Test')..insert('\n');
-
-    final result = c.decode(str);
+    final result = markdownToDelta(markdown);
 
     expect(result, expected);
   });
 
-  test('Separated single-line unordered lists', () {
-    const str = '''
-* UL item 1
+  test('Works on one line with header 1', () {
+    const markdown = '# Heading level 1\n';
+    const expected =
+        r'[{"insert":"Heading level 1"},{"insert":"\n","attributes":{"header":1}}]';
 
-* UL item 2
-''';
-
-    final result = c.decode(str);
-
-    final expected = Delta()
-      ..insert(
-        'UL item 1',
-      )
-      ..insert('\n', ulAttr)
-      ..insert('UL item 2')
-      ..insert('\n', ulAttr);
+    final result = markdownToDelta(markdown);
 
     expect(result, expected);
   });
 
-  test('Inline style in numbered lists', () {
-    const str = '''
-1. OL item 1
-1. _OL item 2_
-''';
+  test('Works on one line with header 2', () {
+    const markdown = '## Heading level 2\n';
+    const expected =
+        r'[{"insert":"Heading level 2"},{"insert":"\n","attributes":{"header":2}}]';
 
-    final res = c.decode(str);
+    final result = markdownToDelta(markdown);
 
-    final expected = Delta()
-      ..insert('OL item 1')
-      ..insert('\n', olAttr)
-      ..insert('OL item 2', italicAttr)
-      ..insert('\n', olAttr);
-
-    expect(res, expected);
+    expect(result, expected);
   });
 
-  test('List and paragraph with inline styles.', () {
-    const str = '''
-1. OL item 1
+  test('Works on one line with header 3', () {
+    const markdown = '### Heading level 3\n';
+    const expected =
+        r'[{"insert":"Heading level 3"},{"insert":"\n","attributes":{"header":3}}]';
 
-_Italic_**Bold**
-''';
+    final result = markdownToDelta(markdown);
 
-    final res = c.decode(str);
-
-    final expected = Delta()
-      ..insert('OL item 1')
-      ..insert('\n', olAttr)
-      ..insert('Italic', italicAttr)
-      ..insert('Bold', boldAttr)
-      ..insert('\n');
-
-    expect(res, expected);
+    expect(result, expected);
   });
 
-  test('Multiple empty lines are removed', () {
-    const str = '''
-Paragraph one.
+  test('Works on one line italic string', () {
+    const markdown = '_Test_\n';
+    const expected =
+        r'[{"insert":"Test","attributes":{"italic":true}},{"insert":"\n"}]';
 
+    final result = markdownToDelta(markdown);
 
-
-Paragraph two.
-''';
-
-    final res = c.decode(str);
-
-    final expected = Delta()
-      ..insert('Paragraph one.')
-      ..insert('\n')
-      ..insert('Paragraph two.')
-      ..insert('\n');
-
-    expect(res, expected);
+    expect(result, expected);
   });
 
-  test('Inline styles in a list', () {
-    const str = '''
-* regular and *italic* text
-* regular and **bold** text
-''';
+  test('Works on one line with block quote', () {
+    const markdown = '> Test\n';
+    const expected =
+        r'[{"insert":"Test"},{"insert":"\n","attributes":{"blockquote":true}}]';
 
-    final res = c.decode(str);
+    final result = markdownToDelta(markdown);
 
-    final expected = Delta()
-      ..insert('regular and ')
-      ..insert('italic', italicAttr)
-      ..insert(' text')
-      ..insert('\n', ulAttr)
-      ..insert('regular and ')
-      ..insert('bold', boldAttr)
-      ..insert(' text')
-      ..insert('\n', ulAttr);
-
-    expect(res, expected);
+    expect(result, expected);
   });
 
-  test('Handles headings', () {
-    const str = '''
-### heading 3
-paragraph
-''';
+  test('Works on one line with code block', () {
+    const markdown = '```\nTest\n```\n';
+    const expected =
+        '[{"insert":"Test"},{"insert":"\\n","attributes":{"code-block":true}}]';
 
-    final res = c.decode(str);
+    final result = markdownToDelta(markdown);
 
-    final expected = Delta()
-      ..insert('heading 3')
-      ..insert('\n', heading3Attr)
-      ..insert('paragraph')
-      ..insert('\n');
-
-    expect(res, expected);
+    expect(result, expected);
   });
 
-  test('Handles headings with inline styles', () {
-    const str = '''
-# *heading 1*
-''';
+  test('Works on one line with ordered list', () {
+    const markdown = '1. Test\n';
+    const expected =
+        r'[{"insert":"Test"},{"insert":"\n","attributes":{"ordered":true}}]';
 
-    final res = c.decode(str);
+    final result = markdownToDelta(markdown);
 
-    final expected = Delta()
-      ..insert('heading 1', italicAttr)
-      ..insert('\n', heading1Attr);
-
-    expect(res, expected);
+    expect(result, expected);
   });
 
-  test('Ignores block and inline markdown inside of a code block', () {
-    const str = '''
-```
-# Not a real heading 1
-*Not italic*
-```
-''';
+  test('Works on one line with unordered list', () {
+    const markdown = '- Test\n';
+    const expected =
+        r'[{"insert":"Test"},{"insert":"\n","attributes":{"bullet":true}}]';
 
-    final res = c.decode(str);
+    final result = markdownToDelta(markdown);
 
-    final expected = Delta()
-      ..insert('# Not a real heading 1')
-      ..insert('\n', codeAttr)
-      ..insert('*Not italic*')
-      ..insert('\n', codeAttr);
-
-    expect(res, expected);
+    expect(result, expected);
   });
 
-  test('Handles links', () {
-    const str = '''
-[Space](https://getspace.app)
-''';
+  test('Works with one inline bold attribute', () {
+    const markdown = '**Foo** bar\n';
+    const expected =
+        r'[{"insert":"Foo","attributes":{"bold":true}},{"insert":" bar\n"}]';
 
-    final res = c.decode(str);
+    final result = markdownToDelta(markdown);
 
-    final linkAttr = <String, dynamic>{}
-      ..addAll(LinkAttribute('https://getspace.app').toJson());
-
-    final expected = Delta()..insert('Space', linkAttr)..insert('\n');
-
-    expect(res, expected);
+    expect(result, expected);
   });
 
-  test('Handle image', () {
-    const str = '''
-![](image.jpg)
-''';
-    final imageAttr = {'image': 'image.jpg'};
-    final expected = Delta()..insert(imageAttr)..insert('\n');
-    // Operation (insert⟨ {image: http://localhost/cb54dcd0-8501-11eb-8242-b34ccc3b8954.png} ⟩)
-    // "[{"insert":{"image":"http://localhost/cb54dcd0-8501-11eb-8242-b34ccc3b8954.png"}},{"insert":"\n\n"}]"
-    final res = c.decode(str);
+  test('Works with one link', () {
+    const markdown = '[FooBar](http://foo.bar)\n';
+    const expected =
+        r'[{"insert":"FooBar","attributes":{"link":"http://foo.bar"}},{"insert":"\n"}]';
 
-    expect(res, expected);
+    final result = markdownToDelta(markdown);
+
+    expect(result, expected);
+  });
+
+  test('Works with one image', () {
+    const markdown = '![](http://image.jpg)\n';
+    const expected =
+        r'[{"insert":{"image":"http://image.jpg"}},{"insert":"\n"}]';
+
+    final result = markdownToDelta(markdown);
+
+    expect(result, expected);
   });
 }

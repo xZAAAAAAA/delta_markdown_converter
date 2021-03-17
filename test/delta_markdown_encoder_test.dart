@@ -64,7 +64,7 @@ void main() {
   test('Works on one line with code block', () {
     const delta =
         r'[{"insert":"Test"},{"insert":"\n","attributes":{"code-block":true}}]';
-    const expected = '> Test\n';
+    const expected = '```\nTest\n```\n';
 
     final result = deltaToMarkdown(delta);
 
@@ -93,7 +93,7 @@ void main() {
 
   test('Works with one inline bold attribute', () {
     const delta =
-        r'[{"insert":"Foo","attributes":{"bold":"true"}},{"insert":" bar"},{"insert":"\n"}]';
+        r'[{"insert":"Foo","attributes":{"bold":true}},{"insert":" bar\n"}]';
     const expected = '**Foo** bar\n';
 
     final result = deltaToMarkdown(delta);
