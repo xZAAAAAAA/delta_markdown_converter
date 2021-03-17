@@ -19,21 +19,17 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
   /// Converts the [input] delta to Markdown.
   @override
   String convert(String input) {
+    markdownBuffer = StringBuffer();
+    lineBuffer = StringBuffer();
+    currentInlineStyle = Style();
+    currentBlockLines = <String>[];
+
     final inputJson = jsonDecode(input) as List<dynamic>;
     if (inputJson is! List<dynamic>) {
       throw ArgumentError('Unexpected formatting of the input delta string.');
     }
     final delta = Delta.fromJson(inputJson);
-
-    // Iterates through all operations of the delta.
     final iterator = DeltaIterator(delta);
-
-    markdownBuffer = StringBuffer();
-    lineBuffer = StringBuffer();
-
-    currentInlineStyle = Style();
-
-    currentBlockLines = <String>[];
 
     while (iterator.hasNext) {
       final operation = iterator.next();
