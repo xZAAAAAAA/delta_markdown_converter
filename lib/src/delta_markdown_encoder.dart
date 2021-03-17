@@ -128,12 +128,12 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
         );
 
         if (lineBlock == currentBlockStyle) {
-          currentBlockLines.add(_writeLine(lineBuffer.toString(), style));
+          currentBlockLines.add(lineBuffer.toString());
         } else {
           _handleBlock(currentBlockStyle);
           currentBlockLines
             ..clear()
-            ..add(_writeLine(lineBuffer.toString(), style));
+            ..add(lineBuffer.toString());
 
           currentBlockStyle = lineBlock;
         }
@@ -191,14 +191,6 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
           ..writeln();
       }
     }
-  }
-
-  String _writeLine(String text, Style style) {
-    final buffer = StringBuffer();
-
-    // Write the text itself
-    buffer.write(text);
-    return buffer.toString();
   }
 
   String _trimRight(StringBuffer buffer) {
