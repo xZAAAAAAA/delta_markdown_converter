@@ -7,14 +7,14 @@ import 'package:flutter_quill/models/quill_delta.dart';
 import 'ast.dart' as ast;
 import 'document.dart';
 
-class DeltaMarkdownDecoder extends Converter<String, Delta> {
+class DeltaMarkdownDecoder extends Converter<String, String> {
   @override
-  Delta convert(String input) {
+  String convert(String input) {
     final lines = input.replaceAll('\r\n', '\n').split('\n');
 
     final markdownDocument = Document().parseLines(lines);
 
-    return _DeltaVisitor().convert(markdownDocument);
+    return jsonEncode(_DeltaVisitor().convert(markdownDocument).toJson());
   }
 }
 

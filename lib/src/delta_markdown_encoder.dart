@@ -5,7 +5,7 @@ import 'package:flutter_quill/models/documents/nodes/embed.dart';
 import 'package:flutter_quill/models/documents/style.dart';
 import 'package:flutter_quill/models/quill_delta.dart';
 
-class DeltaMarkdownEncoder extends Converter<Delta, String> {
+class DeltaMarkdownEncoder extends Converter<String, String> {
   static const _lineFeedAsciiCode = 0x0A;
 
   StringBuffer markdownBuffer;
@@ -18,9 +18,15 @@ class DeltaMarkdownEncoder extends Converter<Delta, String> {
 
   /// Converts the [input] delta to Markdown.
   @override
-  String convert(Delta input) {
+  String convert(String input) {
+    final inputJson = jsonDecode(input) as List<dynamic>;
+    if (inputJson is! List<dynamic>) {
+      throw ArgumentError('Unexpected formatting of the input delta string.');
+    }
+    final delta = Delta.fromJson(inputJson);
+
     // Iterates through all operations of the delta.
-    final iterator = DeltaIterator(input);
+    final iterator = DeltaIterator(delta);
 
     markdownBuffer = StringBuffer();
     lineBuffer = StringBuffer();
@@ -185,11 +191,14 @@ class DeltaMarkdownEncoder extends Converter<Delta, String> {
   String _writeLine(String text, Style style) {
     final buffer = StringBuffer();
     // Open heading
-    if (style.containsKey(Attribute.h1.key)) {
+    if (style.containsKey(Attribute.h1.key) &&
+        style.attributes[Attribute.h1.key].value == 1) {
       _writeAttribute(buffer, Attribute.h1);
-    } else if (style.containsKey(Attribute.h2.key)) {
+    } else if (style.containsKey(Attribute.h2.key) &&
+        style.attributes[Attribute.h1.key].value == 2) {
       _writeAttribute(buffer, Attribute.h2);
-    } else if (style.containsKey(Attribute.h3.key)) {
+    } else if (style.containsKey(Attribute.h3.key) &&
+        style.attributes[Attribute.h1.key].value == 3) {
       _writeAttribute(buffer, Attribute.h3);
     }
 
@@ -222,11 +231,11 @@ class DeltaMarkdownEncoder extends Converter<Delta, String> {
       buffer.write('_');
     } else if (attribute.key == Attribute.link.key) {
       buffer.write(!close ? '[' : '](${attribute.value})');
-    } else if (attribute.key == Attribute.h1.key) {
+    } else if (attribute.key == Attribute.h1.key && attribute.value == 1) {
       buffer.write('# ');
-    } else if (attribute.key == Attribute.h2.key) {
+    } else if (attribute.key == Attribute.h2.key && attribute.value == 2) {
       buffer.write('## ');
-    } else if (attribute.key == Attribute.h3.key) {
+    } else if (attribute.key == Attribute.h3.key && attribute.value == 3) {
       buffer.write('### ');
     } else {
       throw ArgumentError('Cannot handle $attribute');
