@@ -8,7 +8,8 @@ environment:
   sdk: '>=2.2.0 <3.0.0'
 
 dependencies:
-  flutter_quill: 0.3.5
+  charcode: ^1.1.0
+  flutter_quill: ^0.3.5
 
 dev_dependencies:
   flutter_test:
