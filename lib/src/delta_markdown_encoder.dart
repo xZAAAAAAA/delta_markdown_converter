@@ -40,28 +40,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
         if (!operationData.contains('\n')) {
           _handleInline(lineBuffer, operationData, operation.attributes);
         } else {
-          final span = StringBuffer();
-
-          for (var i = 0; i < operationData.length; i++) {
-            if (operationData.codeUnitAt(i) == _lineFeedAsciiCode) {
-              if (span.isNotEmpty) {
-                // Write the span if it's not empty.
-                _handleInline(
-                    lineBuffer, span.toString(), operation.attributes);
-              }
-              // Close any open inline styles.
-              _handleInline(lineBuffer, '', null);
-              _handleLine(operation.attributes);
-              span.clear();
-            } else {
-              span.writeCharCode(operationData.codeUnitAt(i));
-            }
-          }
-
-          // Remaining span
-          if (span.isNotEmpty) {
-            _handleInline(lineBuffer, span.toString(), operation.attributes);
-          }
+          _handleLine(operationData, operation.attributes);
         }
       } else {
         // Embeddable
@@ -140,24 +119,46 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     currentInlineStyle = style;
   }
 
-  void _handleLine(Map<String, dynamic> attributes) {
-    final style = Style.fromJson(attributes);
-    final lineBlock = style.attributes.values.singleWhere(
-      (a) => a.scope == AttributeScope.BLOCK,
-      orElse: () => null,
-    );
+  void _handleLine(String data, Map<String, dynamic> attributes) {
+    final span = StringBuffer();
 
-    if (lineBlock == currentBlockStyle) {
-      currentBlockLines.add(_writeLine(lineBuffer.toString(), style));
-    } else {
-      _handleBlock(currentBlockStyle);
-      currentBlockLines
-        ..clear()
-        ..add(_writeLine(lineBuffer.toString(), style));
+    for (var i = 0; i < data.length; i++) {
+      if (data.codeUnitAt(i) == _lineFeedAsciiCode) {
+        if (span.isNotEmpty) {
+          // Write the span if it's not empty.
+          _handleInline(lineBuffer, span.toString(), attributes);
+        }
+        // Close any open inline styles.
+        _handleInline(lineBuffer, '', null);
 
-      currentBlockStyle = lineBlock;
+        final style = Style.fromJson(attributes);
+        final lineBlock = style.attributes.values.singleWhere(
+          (a) => a.scope == AttributeScope.BLOCK,
+          orElse: () => null,
+        );
+
+        if (lineBlock == currentBlockStyle) {
+          currentBlockLines.add(_writeLine(lineBuffer.toString(), style));
+        } else {
+          _handleBlock(currentBlockStyle);
+          currentBlockLines
+            ..clear()
+            ..add(_writeLine(lineBuffer.toString(), style));
+
+          currentBlockStyle = lineBlock;
+        }
+        lineBuffer.clear();
+
+        span.clear();
+      } else {
+        span.writeCharCode(data.codeUnitAt(i));
+      }
     }
-    lineBuffer.clear();
+
+    // Remaining span
+    if (span.isNotEmpty) {
+      _handleInline(lineBuffer, span.toString(), attributes);
+    }
   }
 
   void _handleBlock(Attribute blockStyle) {
