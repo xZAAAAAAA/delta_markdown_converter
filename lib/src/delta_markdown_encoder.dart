@@ -11,7 +11,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
   StringBuffer markdownBuffer;
   StringBuffer lineBuffer;
 
-  Attribute<String> currentBlockStyle;
+  Attribute currentBlockStyle;
   Style currentInlineStyle;
 
   List<String> currentBlockLines;
@@ -90,7 +90,10 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
   }
 
   void _handleInline(
-      StringBuffer buffer, String text, Map<String, dynamic> attributes) {
+    StringBuffer buffer,
+    String text,
+    Map<String, dynamic> attributes,
+  ) {
     final style = Style.fromJson(attributes);
 
     // First close any current styles if needed
@@ -143,8 +146,11 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
 
   void _handleLine(Map<String, dynamic> attributes) {
     final style = Style.fromJson(attributes);
-    final lineBlock =
-        style.attributes[Attribute.blockQuote] as Attribute<String>;
+    final lineBlock = style.attributes.values.singleWhere(
+      (a) => a.scope == AttributeScope.BLOCK,
+      orElse: () => null,
+    );
+
     if (lineBlock == currentBlockStyle) {
       currentBlockLines.add(_writeLine(lineBuffer.toString(), style));
     } else {
@@ -254,19 +260,19 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
         return; // no close tag needed for simple blocks.
       }
 
-      buffer.write('>');
+      buffer.write('> ');
     } else if (block == Attribute.ul) {
       if (close) {
         return; // no close tag needed for simple blocks.
       }
 
-      buffer.write('*');
+      buffer.write('* ');
     } else if (block == Attribute.ol) {
       if (close) {
         return; // no close tag needed for simple blocks.
       }
 
-      buffer.write('1.');
+      buffer.write('1. ');
     } else {
       throw ArgumentError('Cannot handle block $block');
     }
