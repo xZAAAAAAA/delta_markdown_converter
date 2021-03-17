@@ -42,7 +42,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
         } else {
           _handleLine(operationData, operation.attributes);
         }
-      } else {
+      } else if (operation.data is Map) {
         // Embeddable
         final embed = BlockEmbed(
           (operation.data as Map).keys.first as String,
@@ -56,6 +56,8 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
         /*else if (attribute.key == Attribute.embed.key) {
           _writeEmbedTag(buffer, attribute as EmbedAttribute, close: close);
         }*/
+      } else {
+        throw ArgumentError('Unexpected formatting of the input delta string.');
       }
     }
 
