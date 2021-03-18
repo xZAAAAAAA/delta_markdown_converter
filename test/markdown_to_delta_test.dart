@@ -120,4 +120,14 @@ void main() {
 
     expect(result, expected);
   });
+
+  test('Works with greater and smaller symbol in code', () {
+    const markdown = '```\n<br />\n```';
+    const expected =
+        r'[{"insert":"<br />"},{"insert":"\n","attributes":{"code-block":true}}]';
+
+    final result = markdownToDelta(markdown);
+
+    expect(result, expected);
+  });
 }

@@ -473,10 +473,7 @@ class FencedCodeBlockSyntax extends BlockSyntax {
       // The Markdown tests expect a trailing newline.
       ..add('');
 
-    // Escape the code.
-    final escaped = escapeHtml(childLines.join('\n'));
-
-    final code = Element.text('code', escaped);
+    final code = Element.text('code', childLines.join('\n'));
 
     // the info-string should be trimmed
     // http://spec.commonmark.org/0.22/#example-100
