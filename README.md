@@ -44,9 +44,11 @@ Does not support the following elements, because Markdown does not support them:
 - Formula
 - Video
 
+Does not support the following elements, because flutter_quill does not support them:
+- Inline Code
+
 ### Known limits
 Support for these elements must be implemented:
-- Inline Code
 - Indent
 
 There are only a few tests so far, so the functionality is not yet guaranteed in complex cases.

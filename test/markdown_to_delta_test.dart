@@ -121,6 +121,19 @@ void main() {
     expect(result, expected);
   });
 
+  test('Works not with inline code', () {
+    // flutter_quill does not support inline code currently.
+    const markdown = '`Foo` bar\n';
+    const expected = r'[{"insert":"Foo bar\n"}]';
+
+    // This should be the expected output when flutter_quill supports code:
+    // r'[{"insert":"Foo","attributes":{"code":true}},{"insert":" bar\n"}]';
+
+    final result = markdownToDelta(markdown);
+
+    expect(result, expected);
+  });
+
   test('Works with greater and smaller symbol in code', () {
     const markdown = '```\n<br />\n```';
     const expected =
