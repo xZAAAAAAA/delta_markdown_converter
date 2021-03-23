@@ -143,4 +143,13 @@ void main() {
 
     expect(result, expected);
   });
+
+  test('Works with &-symbol', () {
+    const markdown = 'Foo & Bar\n';
+    const expected = r'[{"insert":"Foo & Bar\n"}]';
+
+    final result = markdownToDelta(markdown);
+
+    expect(result, expected);
+  });
 }

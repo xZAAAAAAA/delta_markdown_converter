@@ -33,10 +33,6 @@ class InlineParser {
 
     syntaxes.addAll(_defaultSyntaxes);
 
-    if (document.encodeHtml) {
-      syntaxes.addAll(_htmlSyntaxes);
-    }
-
     // Custom link resolvers go after the generic text syntax.
     syntaxes.insertAll(1, [
       LinkSyntax(linkResolver: document.linkResolver),
@@ -62,18 +58,6 @@ class InlineParser {
     // Parse "__strong__" and "_emphasis_" tags.
     TagSyntax(r'_+', requiresDelimiterRun: true),
     CodeSyntax(),
-    // We will add the LinkSyntax once we know about the specific link resolver.
-  ]);
-
-  static final List<InlineSyntax> _htmlSyntaxes =
-      List<InlineSyntax>.unmodifiable(<InlineSyntax>[
-    // Leave already-encoded HTML entities alone. Ensures we don't turn
-    // "&amp;" into "&amp;amp;"
-    TextSyntax(r'&[#a-zA-Z0-9]*;'),
-    // Encode "&".
-    TextSyntax(r'&', sub: '&amp;'),
-    // Encode "<". (Why not encode ">" too? Gruber is toying with us.)
-    TextSyntax(r'<', sub: '&lt;'),
     // We will add the LinkSyntax once we know about the specific link resolver.
   ]);
 
