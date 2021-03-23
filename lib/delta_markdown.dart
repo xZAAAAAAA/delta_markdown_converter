@@ -4,6 +4,9 @@ import 'dart:convert';
 
 import 'src/delta_markdown_decoder.dart';
 import 'src/delta_markdown_encoder.dart';
+import 'src/version.dart';
+
+const version = packageVersion;
 
 /// Codec used to convert between Markdown and Quill deltas.
 const DeltaMarkdownCodec _kCodec = DeltaMarkdownCodec();
