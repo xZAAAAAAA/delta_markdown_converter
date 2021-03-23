@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add cli converter
 ### Fixed
 
-- Initial release
+- Don't change & during conversion
+- Don't change < and > during conversion
 
 ## [0.0.1] - 2021-03-17
 
