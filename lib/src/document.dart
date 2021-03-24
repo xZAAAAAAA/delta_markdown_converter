@@ -10,9 +10,9 @@ import 'inline_parser.dart';
 /// Maintains the context needed to parse a Markdown document.
 class Document {
   Document(
-      {Iterable<BlockSyntax> blockSyntaxes,
-      Iterable<InlineSyntax> inlineSyntaxes,
-      ExtensionSet extensionSet,
+      {Iterable<BlockSyntax>? blockSyntaxes,
+      Iterable<InlineSyntax>? inlineSyntaxes,
+      ExtensionSet? extensionSet,
       this.linkResolver,
       this.imageLinkResolver,
       this.encodeHtml = true})
@@ -27,8 +27,8 @@ class Document {
 
   final Map<String, LinkReference> linkReferences = <String, LinkReference>{};
   final ExtensionSet extensionSet;
-  final Resolver linkResolver;
-  final Resolver imageLinkResolver;
+  final Resolver? linkResolver;
+  final Resolver? imageLinkResolver;
   final bool encodeHtml;
   final _blockSyntaxes = <BlockSyntax>{};
   final _inlineSyntaxes = <InlineSyntax>{};
@@ -48,19 +48,19 @@ class Document {
   }
 
   /// Parses the given inline Markdown [text] to a series of AST nodes.
-  List<Node> parseInline(String text) => InlineParser(text, this).parse();
+  List<Node>? parseInline(String text) => InlineParser(text, this).parse();
 
   void _parseInlineContent(List<Node> nodes) {
     for (var i = 0; i < nodes.length; i++) {
       final node = nodes[i];
       if (node is UnparsedContent) {
-        final inlineNodes = parseInline(node.textContent);
+        final inlineNodes = parseInline(node.textContent)!;
         nodes
           ..removeAt(i)
           ..insertAll(i, inlineNodes);
         i += inlineNodes.length - 1;
       } else if (node is Element && node.children != null) {
-        _parseInlineContent(node.children);
+        _parseInlineContent(node.children!);
       }
     }
   }

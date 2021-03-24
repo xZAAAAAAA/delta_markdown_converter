@@ -24,14 +24,14 @@ class _DeltaVisitor implements ast.NodeVisitor {
 
   static final _embedTags = RegExp('hr|img');
 
-  Delta delta;
+  late Delta delta;
 
-  Queue<Attribute> activeInlineAttributes;
-  Attribute activeBlockAttribute;
-  Set<String> uniqueIds;
+  late Queue<Attribute> activeInlineAttributes;
+  Attribute? activeBlockAttribute;
+  late Set<String> uniqueIds;
 
-  ast.Element previousElement;
-  ast.Element previousToplevelElement;
+  ast.Element? previousElement;
+  late ast.Element previousToplevelElement;
 
   Delta convert(List<ast.Node> nodes) {
     delta = Delta();
@@ -123,8 +123,8 @@ class _DeltaVisitor implements ast.NodeVisitor {
         // }
       } else if (element.tag == 'p' &&
           previousElement != null &&
-          !previousElement.isToplevel &&
-          !previousElement.children.contains(element)) {
+          !previousElement!.isToplevel &&
+          !previousElement!.children!.contains(element)) {
         // Here we have two children of the same toplevel element. These need
         // to be separated by additional newlines.
 
@@ -144,7 +144,7 @@ class _DeltaVisitor implements ast.NodeVisitor {
     if (_embedTags.firstMatch(element.tag) != null) {
       // We write out the element here since the embed has no children or
       // content.
-      delta.insert(attr.toJson());
+      delta.insert(attr!.toJson());
     } else if (_blockTags.firstMatch(element.tag) == null && attr != null) {
       activeInlineAttributes.addLast(attr);
     }
@@ -209,7 +209,7 @@ class _DeltaVisitor implements ast.NodeVisitor {
     return suffixedId;
   }
 
-  Attribute _tagToAttribute(ast.Element el) {
+  Attribute? _tagToAttribute(ast.Element el) {
     switch (el.tag) {
       case 'em':
         return Attribute.italic;
@@ -241,6 +241,6 @@ class _DeltaVisitor implements ast.NodeVisitor {
   }
 }
 
-class ImageAttribute extends Attribute<String> {
-  ImageAttribute(String val) : super('image', AttributeScope.EMBEDS, val);
+class ImageAttribute extends Attribute<String?> {
+  ImageAttribute(String? val) : super('image', AttributeScope.EMBEDS, val);
 }

@@ -10,11 +10,11 @@ import 'inline_parser.dart';
 
 /// Converts the given string of Markdown to HTML.
 String markdownToHtml(String markdown,
-    {Iterable<BlockSyntax> blockSyntaxes,
-    Iterable<InlineSyntax> inlineSyntaxes,
-    ExtensionSet extensionSet,
-    Resolver linkResolver,
-    Resolver imageLinkResolver,
+    {Iterable<BlockSyntax>? blockSyntaxes,
+    Iterable<InlineSyntax>? inlineSyntaxes,
+    ExtensionSet? extensionSet,
+    Resolver? linkResolver,
+    Resolver? imageLinkResolver,
     bool inlineOnly = false}) {
   final document = Document(
       blockSyntaxes: blockSyntaxes,
@@ -24,7 +24,7 @@ String markdownToHtml(String markdown,
       imageLinkResolver: imageLinkResolver);
 
   if (inlineOnly) {
-    return renderToHtml(document.parseInline(markdown));
+    return renderToHtml(document.parseInline(markdown)!);
   }
 
   // Replace windows line endings with unix line endings, and split.
@@ -42,8 +42,8 @@ class HtmlRenderer implements NodeVisitor {
 
   static final _blockTags = RegExp('blockquote|h1|h2|h3|h4|h5|h6|hr|p|pre');
 
-  StringBuffer buffer;
-  Set<String> uniqueIds;
+  late StringBuffer buffer;
+  late Set<String> uniqueIds;
 
   String render(List<Node> nodes) {
     buffer = StringBuffer();
@@ -80,7 +80,7 @@ class HtmlRenderer implements NodeVisitor {
 
     // attach header anchor ids generated from text
     if (element.generatedId != null) {
-      buffer.write(' id="${uniquifyId(element.generatedId)}"');
+      buffer.write(' id="${uniquifyId(element.generatedId!)}"');
     }
 
     if (element.isEmpty) {

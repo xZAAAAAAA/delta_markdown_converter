@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/nodes/embed.dart';
 import 'package:flutter_quill/models/documents/style.dart';
@@ -8,13 +9,13 @@ import 'package:flutter_quill/models/quill_delta.dart';
 class DeltaMarkdownEncoder extends Converter<String, String> {
   static const _lineFeedAsciiCode = 0x0A;
 
-  StringBuffer markdownBuffer;
-  StringBuffer lineBuffer;
+  late StringBuffer markdownBuffer;
+  late StringBuffer lineBuffer;
 
-  Attribute currentBlockStyle;
-  Style currentInlineStyle;
+  Attribute? currentBlockStyle;
+  late Style currentInlineStyle;
 
-  List<String> currentBlockLines;
+  late List<String> currentBlockLines;
 
   /// Converts the [input] delta to Markdown.
   @override
@@ -24,7 +25,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     currentInlineStyle = Style();
     currentBlockLines = <String>[];
 
-    final inputJson = jsonDecode(input) as List<dynamic>;
+    final inputJson = jsonDecode(input) as List<dynamic>?;
     if (inputJson is! List<dynamic>) {
       throw ArgumentError('Unexpected formatting of the input delta string.');
     }
@@ -57,7 +58,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
   void _handleInline(
     StringBuffer buffer,
     String text,
-    Map<String, dynamic> attributes,
+    Map<String, dynamic>? attributes,
   ) {
     final style = Style.fromJson(attributes);
 
@@ -109,7 +110,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     currentInlineStyle = style;
   }
 
-  void _handleLine(String data, Map<String, dynamic> attributes) {
+  void _handleLine(String data, Map<String, dynamic>? attributes) {
     final span = StringBuffer();
 
     for (var i = 0; i < data.length; i++) {
@@ -124,8 +125,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
         final lineBlock = Style.fromJson(attributes)
             .attributes
             .values
-            .singleWhere((a) => a.scope == AttributeScope.BLOCK,
-                orElse: () => null);
+            .singleWhereOrNull((a) => a.scope == AttributeScope.BLOCK);
 
         if (lineBlock == currentBlockStyle) {
           currentBlockLines.add(lineBuffer.toString());
@@ -160,7 +160,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     }
   }
 
-  void _handleBlock(Attribute blockStyle) {
+  void _handleBlock(Attribute? blockStyle) {
     if (currentBlockLines.isEmpty) {
       return; // Empty block
     }

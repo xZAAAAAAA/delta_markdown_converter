@@ -31,13 +31,13 @@ class InlineParser {
       syntaxes.add(TextSyntax(r'[ \tA-Za-z0-9]*[A-Za-z0-9](?=\s)'));
     }
 
-    syntaxes.addAll(_defaultSyntaxes);
-
-    // Custom link resolvers go after the generic text syntax.
-    syntaxes.insertAll(1, [
-      LinkSyntax(linkResolver: document.linkResolver),
-      ImageSyntax(linkResolver: document.imageLinkResolver)
-    ]);
+    syntaxes
+      ..addAll(_defaultSyntaxes)
+      // Custom link resolvers go after the generic text syntax.
+      ..insertAll(1, [
+        LinkSyntax(linkResolver: document.linkResolver),
+        ImageSyntax(linkResolver: document.imageLinkResolver)
+      ]);
   }
 
   static final List<InlineSyntax> _defaultSyntaxes =
@@ -77,7 +77,7 @@ class InlineParser {
 
   final List<TagState> _stack;
 
-  List<Node> parse() {
+  List<Node>? parse() {
     // Make a fake top tag to hold the results.
     _stack.add(TagState(0, 0, null, null));
 
@@ -156,7 +156,7 @@ abstract class InlineSyntax {
   ///
   /// The parser's position can be overriden with [startMatchPos].
   /// Returns whether or not the pattern successfully matched.
-  bool tryMatch(InlineParser parser, [int startMatchPos]) {
+  bool tryMatch(InlineParser parser, [int? startMatchPos]) {
     startMatchPos ??= parser.pos;
 
     final startMatch = pattern.matchAsPrefix(parser.source, startMatchPos);
@@ -168,7 +168,7 @@ abstract class InlineSyntax {
     parser.writeText();
 
     if (onMatch(parser, startMatch)) {
-      parser.consume(startMatch[0].length);
+      parser.consume(startMatch[0]!.length);
     }
     return true;
   }
@@ -194,22 +194,22 @@ class LineBreakSyntax extends InlineSyntax {
 
 /// Matches stuff that should just be passed through as straight text.
 class TextSyntax extends InlineSyntax {
-  TextSyntax(String pattern, {String sub})
+  TextSyntax(String pattern, {String? sub})
       : substitute = sub,
         super(pattern);
 
-  final String substitute;
+  final String? substitute;
 
   @override
   bool onMatch(InlineParser parser, Match match) {
     if (substitute == null) {
       // Just use the original matched text.
-      parser.advanceBy(match[0].length);
+      parser.advanceBy(match[0]!.length);
       return false;
     }
 
     // Insert the substitution.
-    parser.addNode(Text(substitute));
+    parser.addNode(Text(substitute!));
     return true;
   }
 }
@@ -221,7 +221,7 @@ class EscapeSyntax extends InlineSyntax {
   @override
   bool onMatch(InlineParser parser, Match match) {
     // Insert the substitution.
-    parser.addNode(Text(match[0][1]));
+    parser.addNode(Text(match[0]![1]));
     return true;
   }
 }
@@ -251,7 +251,7 @@ class EmailAutolinkSyntax extends InlineSyntax {
 
   @override
   bool onMatch(InlineParser parser, Match match) {
-    final url = match[1];
+    final url = match[1]!;
     final anchor = Element.text('a', escapeHtml(url));
     anchor.attributes['href'] = Uri.encodeFull('mailto:$url');
     parser.addNode(anchor);
@@ -266,7 +266,7 @@ class AutolinkSyntax extends InlineSyntax {
 
   @override
   bool onMatch(InlineParser parser, Match match) {
-    final url = match[1];
+    final url = match[1]!;
     final anchor = Element.text('a', escapeHtml(url));
     anchor.attributes['href'] = Uri.encodeFull(url);
     parser.addNode(anchor);
@@ -305,13 +305,13 @@ class AutolinkExtensionSyntax extends InlineSyntax {
   static final regExpWhiteSpace = RegExp(r'\s');
 
   @override
-  bool tryMatch(InlineParser parser, [int startMatchPos]) {
+  bool tryMatch(InlineParser parser, [int? startMatchPos]) {
     return super.tryMatch(parser, parser.pos > 0 ? parser.pos - 1 : 0);
   }
 
   @override
   bool onMatch(InlineParser parser, Match match) {
-    var url = match[1];
+    var url = match[1]!;
     var href = url;
     var matchLength = url.length;
 
@@ -350,9 +350,9 @@ class AutolinkExtensionSyntax extends InlineSyntax {
     // https://github.github.com/gfm/#example-599
     final trailingPunc = regExpTrailingPunc.firstMatch(url);
     if (trailingPunc != null) {
-      url = url.substring(0, url.length - trailingPunc[0].length);
-      href = href.substring(0, href.length - trailingPunc[0].length);
-      matchLength -= trailingPunc[0].length;
+      url = url.substring(0, url.length - trailingPunc[0]!.length);
+      href = href.substring(0, href.length - trailingPunc[0]!.length);
+      matchLength -= trailingPunc[0]!.length;
     }
 
     // If an autolink ends in a semicolon (;), we check to see if it appears
@@ -365,9 +365,9 @@ class AutolinkExtensionSyntax extends InlineSyntax {
       final entityRef = regExpEndsWithColon.firstMatch(url);
       if (entityRef != null) {
         // Strip out HTML entity reference
-        url = url.substring(0, url.length - entityRef[0].length);
-        href = href.substring(0, href.length - entityRef[0].length);
-        matchLength -= entityRef[0].length;
+        url = url.substring(0, url.length - entityRef[0]!.length);
+        href = href.substring(0, href.length - entityRef[0]!.length);
+        matchLength -= entityRef[0]!.length;
       }
     }
 
@@ -412,15 +412,16 @@ class _DelimiterRun {
   // TODO(srawlins): Unicode whitespace
   static const String whitespace = ' \t\r\n';
 
-  final int char;
-  final int length;
-  final bool isLeftFlanking;
-  final bool isRightFlanking;
-  final bool isPrecededByPunctuation;
-  final bool isFollowedByPunctuation;
+  final int? char;
+  final int? length;
+  final bool? isLeftFlanking;
+  final bool? isRightFlanking;
+  final bool? isPrecededByPunctuation;
+  final bool? isFollowedByPunctuation;
 
   // ignore: prefer_constructors_over_static_methods
-  static _DelimiterRun tryParse(InlineParser parser, int runStart, int runEnd) {
+  static _DelimiterRun? tryParse(
+      InlineParser parser, int runStart, int runEnd) {
     bool leftFlanking,
         rightFlanking,
         precededByPunctuation,
@@ -481,19 +482,19 @@ class _DelimiterRun {
 
   // Whether a delimiter in this run can open emphasis or strong emphasis.
   bool get canOpen =>
-      isLeftFlanking &&
-      (char == $asterisk || !isRightFlanking || isPrecededByPunctuation);
+      isLeftFlanking! &&
+      (char == $asterisk || !isRightFlanking! || isPrecededByPunctuation!);
 
   // Whether a delimiter in this run can close emphasis or strong emphasis.
   bool get canClose =>
-      isRightFlanking &&
-      (char == $asterisk || !isLeftFlanking || isFollowedByPunctuation);
+      isRightFlanking! &&
+      (char == $asterisk || !isLeftFlanking! || isFollowedByPunctuation!);
 }
 
 /// Matches syntax that has a pair of tags and becomes an element, like `*` for
 /// `<em>`. Allows nested tags.
 class TagSyntax extends InlineSyntax {
-  TagSyntax(String pattern, {String end, this.requiresDelimiterRun = false})
+  TagSyntax(String pattern, {String? end, this.requiresDelimiterRun = false})
       : endPattern = RegExp((end != null) ? end : pattern, multiLine: true),
         super(pattern);
 
@@ -507,7 +508,7 @@ class TagSyntax extends InlineSyntax {
 
   @override
   bool onMatch(InlineParser parser, Match match) {
-    final runLength = match.group(0).length;
+    final runLength = match.group(0)!.length;
     final matchStart = parser.pos;
     final matchEnd = parser.pos + runLength - 1;
     if (!requiresDelimiterRun) {
@@ -526,7 +527,7 @@ class TagSyntax extends InlineSyntax {
   }
 
   bool onMatchEnd(InlineParser parser, Match match, TagState state) {
-    final runLength = match.group(0).length;
+    final runLength = match.group(0)!.length;
     final matchStart = parser.pos;
     final matchEnd = parser.pos + runLength - 1;
     final openingRunLength = state.endPos - state.startPos;
@@ -575,11 +576,11 @@ class StrikethroughSyntax extends TagSyntax {
 
   @override
   bool onMatchEnd(InlineParser parser, Match match, TagState state) {
-    final runLength = match.group(0).length;
+    final runLength = match.group(0)!.length;
     final matchStart = parser.pos;
     final matchEnd = parser.pos + runLength - 1;
-    final delimiterRun = _DelimiterRun.tryParse(parser, matchStart, matchEnd);
-    if (!delimiterRun.isRightFlanking) {
+    final delimiterRun = _DelimiterRun.tryParse(parser, matchStart, matchEnd)!;
+    if (!delimiterRun.isRightFlanking!) {
       return false;
     }
 
@@ -590,7 +591,7 @@ class StrikethroughSyntax extends TagSyntax {
 
 /// Matches links like `[blah][label]` and `[blah](url)`.
 class LinkSyntax extends TagSyntax {
-  LinkSyntax({Resolver linkResolver, String pattern = r'\['})
+  LinkSyntax({Resolver? linkResolver, String pattern = r'\['})
       : linkResolver = (linkResolver ?? (_, [__]) => null),
         super(pattern, end: r'\]');
 
@@ -698,7 +699,7 @@ class LinkSyntax extends TagSyntax {
   /// Otherwise, returns `null`.
   ///
   /// [label] does not need to be normalized.
-  Node _resolveReferenceLink(
+  Node? _resolveReferenceLink(
       String label, TagState state, Map<String, LinkReference> linkReferences) {
     final normalizedLabel = label.toLowerCase();
     final linkReference = linkReferences[normalizedLabel];
@@ -721,7 +722,7 @@ class LinkSyntax extends TagSyntax {
   }
 
   /// Create the node represented by a Markdown link.
-  Node _createNode(TagState state, String destination, String title) {
+  Node _createNode(TagState state, String destination, String? title) {
     final element = Element('a', state.children);
     element.attributes['href'] = escapeAttribute(destination);
     if (title != null && title.isNotEmpty) {
@@ -751,9 +752,6 @@ class LinkSyntax extends TagSyntax {
   // Returns whether the link was added successfully.
   bool _tryAddInlineLink(InlineParser parser, TagState state, InlineLink link) {
     final element = _createNode(state, link.destination, link.title);
-    if (element == null) {
-      return false;
-    }
     parser
       ..addNode(element)
       ..start = parser.pos;
@@ -767,7 +765,7 @@ class LinkSyntax extends TagSyntax {
   /// opens the link label.
   ///
   /// Returns the label if it could be parsed, or `null` if not.
-  String _parseReferenceLinkLabel(InlineParser parser) {
+  String? _parseReferenceLinkLabel(InlineParser parser) {
     // Walk past the opening `[`.
     parser.advanceBy(1);
     if (parser.isDone) {
@@ -816,7 +814,7 @@ class LinkSyntax extends TagSyntax {
   /// `(http://url "title")`.
   ///
   /// Returns the [InlineLink] if one was parsed, or `null` if not.
-  InlineLink _parseInlineLink(InlineParser parser) {
+  InlineLink? _parseInlineLink(InlineParser parser) {
     // Start walking to the character just after the opening `(`.
     parser.advanceBy(1);
 
@@ -836,7 +834,7 @@ class LinkSyntax extends TagSyntax {
   /// Parse an inline link with a bracketed destination (a destination wrapped
   /// in `<...>`). The current position of the parser must be the first
   /// character of the destination.
-  InlineLink _parseInlineBracketedLink(InlineParser parser) {
+  InlineLink? _parseInlineBracketedLink(InlineParser parser) {
     parser.advanceBy(1);
 
     final buffer = StringBuffer();
@@ -891,7 +889,7 @@ class LinkSyntax extends TagSyntax {
   /// Parse an inline link with a "bare" destination (a destination _not_
   /// wrapped in `<...>`). The current position of the parser must be the first
   /// character of the destination.
-  InlineLink _parseInlineBareDestinationLink(InlineParser parser) {
+  InlineLink? _parseInlineBareDestinationLink(InlineParser parser) {
     // According to
     // [CommonMark](http://spec.commonmark.org/0.28/#link-destination):
     //
@@ -991,7 +989,7 @@ class LinkSyntax extends TagSyntax {
   // Parse a link title in [parser] at it's current position. The parser's
   // current position should be a whitespace character that followed a link
   // destination.
-  String _parseTitle(InlineParser parser) {
+  String? _parseTitle(InlineParser parser) {
     _moveThroughWhitespace(parser);
     if (parser.isDone) {
       return null;
@@ -1050,14 +1048,14 @@ class LinkSyntax extends TagSyntax {
 /// Matches images like `![alternate text](url "optional title")` and
 /// `![alternate text][label]`.
 class ImageSyntax extends LinkSyntax {
-  ImageSyntax({Resolver linkResolver})
+  ImageSyntax({Resolver? linkResolver})
       : super(linkResolver: linkResolver, pattern: r'!\[');
 
   @override
-  Node _createNode(TagState state, String destination, String title) {
+  Node _createNode(TagState state, String destination, String? title) {
     final element = Element.empty('img');
     element.attributes['src'] = escapeHtml(destination);
-    element.attributes['alt'] = state?.textContent ?? '';
+    element.attributes['alt'] = state.textContent;
     if (title != null && title.isNotEmpty) {
       element.attributes['title'] = escapeAttribute(title);
     }
@@ -1101,7 +1099,7 @@ class CodeSyntax extends InlineSyntax {
   static const String _pattern = r'(`+(?!`))((?:.|\n)*?[^`])\1(?!`)';
 
   @override
-  bool tryMatch(InlineParser parser, [int startMatchPos]) {
+  bool tryMatch(InlineParser parser, [int? startMatchPos]) {
     if (parser.pos > 0 && parser.charAt(parser.pos - 1) == $backquote) {
       // Not really a match! We can't just sneak past one backtick to try the
       // next character. An example of this situation would be:
@@ -1117,14 +1115,14 @@ class CodeSyntax extends InlineSyntax {
     }
     parser.writeText();
     if (onMatch(parser, match)) {
-      parser.consume(match[0].length);
+      parser.consume(match[0]!.length);
     }
     return true;
   }
 
   @override
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Element.text('code', escapeHtml(match[2].trim())));
+    parser.addNode(Element.text('code', escapeHtml(match[2]!.trim())));
     return true;
   }
 }
@@ -1142,7 +1140,7 @@ class EmojiSyntax extends InlineSyntax {
   @override
   bool onMatch(InlineParser parser, Match match) {
     final alias = match[1];
-    final emoji = emojis[alias];
+    final emoji = emojis[alias!];
     if (emoji == null) {
       parser.advanceBy(1);
       return false;
@@ -1167,29 +1165,30 @@ class TagState {
   final int endPos;
 
   /// The syntax that created this node.
-  final TagSyntax syntax;
+  final TagSyntax? syntax;
 
   /// The children of this node. Will be `null` for text nodes.
   final List<Node> children;
 
-  final _DelimiterRun openingDelimiterRun;
+  final _DelimiterRun? openingDelimiterRun;
 
   /// Attempts to close this tag by matching the current text against its end
   /// pattern.
   bool tryMatch(InlineParser parser) {
-    final endMatch = syntax.endPattern.matchAsPrefix(parser.source, parser.pos);
+    final endMatch =
+        syntax!.endPattern.matchAsPrefix(parser.source, parser.pos);
     if (endMatch == null) {
       return false;
     }
 
-    if (!syntax.requiresDelimiterRun) {
+    if (!syntax!.requiresDelimiterRun) {
       // Close the tag.
       close(parser, endMatch);
       return true;
     }
 
     // TODO: Move this logic into TagSyntax.
-    final runLength = endMatch.group(0).length;
+    final runLength = endMatch.group(0)!.length;
     final openingRunLength = endPos - startPos;
     final closingMatchStart = parser.pos;
     final closingMatchEnd = parser.pos + runLength - 1;
@@ -1198,10 +1197,10 @@ class TagState {
     if (closingDelimiterRun != null && closingDelimiterRun.canClose) {
       // Emphasis rules #9 and #10:
       final oneRunOpensAndCloses =
-          (openingDelimiterRun.canOpen && openingDelimiterRun.canClose) ||
+          (openingDelimiterRun!.canOpen && openingDelimiterRun!.canClose) ||
               (closingDelimiterRun.canOpen && closingDelimiterRun.canClose);
       if (oneRunOpensAndCloses &&
-          (openingRunLength + closingDelimiterRun.length) % 3 == 0) {
+          (openingRunLength + closingDelimiterRun.length!) % 3 == 0) {
         return false;
       }
       // Close the tag.
@@ -1216,7 +1215,7 @@ class TagState {
   ///
   /// Will discard any unmatched tags that happen to be above it on the stack.
   /// If this is the last node in the stack, returns its children.
-  List<Node> close(InlineParser parser, Match endMatch) {
+  List<Node>? close(InlineParser parser, Match? endMatch) {
     // If there are unclosed tags on top of this one when it's closed, that
     // means they are mismatched. Mismatched tags are treated as plain text in
     // markdown. So for each tag above this one, we write its start tag as text
@@ -1247,26 +1246,26 @@ class TagState {
     final endMatchIndex = parser.pos;
 
     // We are still parsing, so add this to its parent's children.
-    if (syntax.onMatchEnd(parser, endMatch, this)) {
-      parser.consume(endMatch[0].length);
+    if (syntax!.onMatchEnd(parser, endMatch!, this)) {
+      parser.consume(endMatch[0]!.length);
     } else {
       // Didn't close correctly so revert to text.
       parser
         ..writeTextRange(startPos, endPos)
         .._stack.last.children.addAll(children)
         ..pos = endMatchIndex
-        ..advanceBy(endMatch[0].length);
+        ..advanceBy(endMatch[0]!.length);
     }
 
     return null;
   }
 
-  String get textContent => children.map((child) => child.textContent).join('');
+  String get textContent => children.map((child) => child.textContent).join();
 }
 
 class InlineLink {
   InlineLink(this.destination, {this.title});
 
   final String destination;
-  final String title;
+  final String? title;
 }
