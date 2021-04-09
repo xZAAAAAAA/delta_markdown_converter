@@ -64,8 +64,9 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
 
     // First close any current styles if needed
     final markedForRemoval = <Attribute>[];
-    for (final value in currentInlineStyle.attributes.values) {
-      // TODO(tillf): Maybe reverse?
+    // Close the styles in reverse order, e.g. **_ for _**Test**_.
+    for (final value
+        in currentInlineStyle.attributes.values.toList().reversed) {
       // TODO(tillf): Is block correct?
       if (value.scope == AttributeScope.BLOCK) {
         continue;

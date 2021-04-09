@@ -101,6 +101,16 @@ void main() {
     expect(result, expected);
   });
 
+  test('Works on one text with multiple inline styles', () {
+    const markdown = '_**Foo**_\n';
+    const expected =
+        r'[{"insert":"Foo","attributes":{"italic":true,"bold":true}},{"insert":"\n"}]';
+
+    final result = markdownToDelta(markdown);
+
+    expect(result, expected);
+  });
+
   test('Works with one link', () {
     const markdown = '[FooBar](http://foo.bar)\n';
     const expected =

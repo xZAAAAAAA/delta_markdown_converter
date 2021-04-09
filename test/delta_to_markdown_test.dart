@@ -51,6 +51,16 @@ void main() {
     expect(result, expected);
   });
 
+  test('Works on one text with multiple inline styles', () {
+    const delta =
+        r'[{"attributes":{"italic":true,"bold":true},"insert":"Foo"},{"insert":"\n"}]';
+    const expected = '_**Foo**_\n';
+
+    final result = deltaToMarkdown(delta);
+
+    expect(result, expected);
+  });
+
   test('Works on one line with block quote', () {
     const delta =
         r'[{"insert":"Test"},{"insert":"\n","attributes":{"blockquote":true}}]';
