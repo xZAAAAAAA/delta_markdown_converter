@@ -9,14 +9,13 @@ import 'inline_parser.dart';
 
 /// Maintains the context needed to parse a Markdown document.
 class Document {
-  Document(
-      {Iterable<BlockSyntax>? blockSyntaxes,
-      Iterable<InlineSyntax>? inlineSyntaxes,
-      ExtensionSet? extensionSet,
-      this.linkResolver,
-      this.imageLinkResolver,
-      this.encodeHtml = true})
-      : extensionSet = extensionSet ?? ExtensionSet.commonMark {
+  Document({
+    Iterable<BlockSyntax>? blockSyntaxes,
+    Iterable<InlineSyntax>? inlineSyntaxes,
+    ExtensionSet? extensionSet,
+    this.linkResolver,
+    this.imageLinkResolver,
+  }) : extensionSet = extensionSet ?? ExtensionSet.commonMark {
     _blockSyntaxes
       ..addAll(blockSyntaxes ?? [])
       ..addAll(this.extensionSet.blockSyntaxes);
@@ -29,7 +28,6 @@ class Document {
   final ExtensionSet extensionSet;
   final Resolver? linkResolver;
   final Resolver? imageLinkResolver;
-  final bool encodeHtml;
   final _blockSyntaxes = <BlockSyntax>{};
   final _inlineSyntaxes = <InlineSyntax>{};
 
