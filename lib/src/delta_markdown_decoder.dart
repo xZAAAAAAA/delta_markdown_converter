@@ -104,7 +104,8 @@ class _DeltaVisitor implements ast.NodeVisitor {
         // it off.
         if (previousToplevelElement.tag != 'ul' &&
             previousToplevelElement.tag != 'ol' &&
-            previousToplevelElement.tag != 'pre') {
+            previousToplevelElement.tag != 'pre' &&
+            previousToplevelElement.tag != 'hr') {
           delta.insert('\n', activeBlockAttribute?.toJson());
         }
 
