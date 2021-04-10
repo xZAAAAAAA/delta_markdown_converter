@@ -162,4 +162,13 @@ void main() {
 
     expect(result, expected);
   });
+
+  test('Works with horizontal line', () {
+    const markdown = 'Foo\n\n---\n\nBar\n';
+    const expected = r'[{"insert":"Foo\n"},{"insert":{"divider":"hr"}},{"insert":"Bar\n"}]';
+
+    final result = markdownToDelta(markdown);
+
+    expect(result, expected);
+  });
 }

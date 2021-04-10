@@ -158,6 +158,9 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     if (embed.type == 'image') {
       _writeEmbedTag(lineBuffer, embed);
       _writeEmbedTag(lineBuffer, embed, close: true);
+    } else if(embed.type == 'divider') {
+      _writeEmbedTag(lineBuffer, embed);
+      _writeEmbedTag(lineBuffer, embed, close: true);
     }
   }
 
@@ -254,7 +257,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     bool close = false,
   }) {
     const kImageType = 'image';
-    const kHorizontalRuleType = 'hr';
+    const kDividerType = 'divider';
 
     if (embed.type == kImageType) {
       if (close) {
@@ -262,8 +265,8 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
       } else {
         buffer.write('![');
       }
-    } else if (embed.type == kHorizontalRuleType && close) {
-      buffer.write('\n---\n');
+    } else if (embed.type == kDividerType && close) {
+      buffer.write('\n---\n\n');
     }
   }
 }

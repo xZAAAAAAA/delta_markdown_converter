@@ -137,7 +137,9 @@ class _DeltaVisitor implements ast.NodeVisitor {
     }
 
     // Keep track of the top-level block attribute.
-    if (element.isToplevel) {
+    if (element.isToplevel && element.tag != 'hr') {
+      // Hacky solution for horizontal rule so that the attribute is not added
+      // to the line feed at the end of the line.
       activeBlockAttribute = attr;
     }
 
@@ -235,6 +237,8 @@ class _DeltaVisitor implements ast.NodeVisitor {
       case 'img':
         final href = el.attributes['src'];
         return ImageAttribute(href);
+      case 'hr':
+        return DividerAttribute();
     }
 
     return null;
@@ -243,4 +247,8 @@ class _DeltaVisitor implements ast.NodeVisitor {
 
 class ImageAttribute extends Attribute<String?> {
   ImageAttribute(String? val) : super('image', AttributeScope.EMBEDS, val);
+}
+
+class DividerAttribute extends Attribute<String?> {
+  DividerAttribute() : super('divider', AttributeScope.EMBEDS, 'hr');
 }

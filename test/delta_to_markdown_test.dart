@@ -91,6 +91,15 @@ void main() {
     expect(result, expected);
   });
 
+  test('Works with horizontal line', () {
+    const delta = r'[{"insert":"Foo\n"},{"insert":{"divider":"hr"}},{"insert":"Bar\n"}]';
+    const expected = 'Foo\n\n---\n\nBar\n';
+
+    final result = deltaToMarkdown(delta);
+
+    expect(result, expected);
+  });
+
   test('Works on one line with unordered list', () {
     const delta =
         r'[{"insert":"Test"},{"insert":"\n","attributes":{"list":"bullet"}}]';
