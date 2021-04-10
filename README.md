@@ -29,6 +29,7 @@ Currently, these elements are supported:
 - List
 - Code Block
 - Image
+- Horizontal Rule
 
 Does not support the following elements, because Markdown does not support them:
 
