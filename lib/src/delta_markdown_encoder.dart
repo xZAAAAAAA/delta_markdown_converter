@@ -158,7 +158,7 @@ class DeltaMarkdownEncoder extends Converter<String, String> {
     if (embed.type == 'image') {
       _writeEmbedTag(lineBuffer, embed);
       _writeEmbedTag(lineBuffer, embed, close: true);
-    } else if(embed.type == 'divider') {
+    } else if (embed.type == 'divider') {
       _writeEmbedTag(lineBuffer, embed);
       _writeEmbedTag(lineBuffer, embed, close: true);
     }
