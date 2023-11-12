@@ -1,5 +1,5 @@
 name: delta_markdown_converter
-version: 0.0.1
+version: 0.0.2
 
 description: A library for converting between Markdown and Delta of the
   package flutter_quill.
