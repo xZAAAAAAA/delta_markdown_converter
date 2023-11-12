@@ -1,3 +1,12 @@
+# Delta Markdown Converter
+
+**Update**:
+
+> A fork of the original [delta_markdown](https://github.com/friebetill/delta_markdown) in order to work with latest versions of Flutter Quill which needed by [quill_html_converter](https://pub.dev/packages/quill_html_converter)
+>
+> 
+
+
 A portable Markdown library written in Dart.
 It can convert between Markdown and Delta.
 

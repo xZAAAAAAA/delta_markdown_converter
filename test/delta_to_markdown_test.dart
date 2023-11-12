@@ -1,4 +1,4 @@
-import 'package:delta_markdown/delta_markdown.dart';
+import 'package:delta_markdown_converter/delta_markdown_converter.dart';
 import 'package:test/test.dart';
 
 void main() {

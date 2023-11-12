@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:delta_markdown/delta_markdown.dart';
+import 'package:delta_markdown_converter/delta_markdown_converter.dart';
 
 Future main(List<String> args) async {
   final parser = ArgParser()
