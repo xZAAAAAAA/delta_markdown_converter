@@ -5,6 +5,14 @@ description: A library for converting between Markdown and Delta of the
   package flutter_quill.
 homepage: https://github.com/freshtechtips/delta_markdown_converter
 
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+
 environment:
   sdk: '>=3.1.5 <4.0.0'
 
