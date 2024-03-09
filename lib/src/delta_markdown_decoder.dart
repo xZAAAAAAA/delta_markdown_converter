@@ -5,14 +5,14 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 
 import 'ast.dart' as ast;
-import 'document.dart';
+import 'document.dart' as doc;
 
 class DeltaMarkdownDecoder extends Converter<String, String> {
   @override
   String convert(String input) {
     final lines = input.replaceAll('\r\n', '\n').split('\n');
 
-    final markdownDocument = Document().parseLines(lines);
+    final markdownDocument = doc.Document().parseLines(lines);
 
     return jsonEncode(_DeltaVisitor().convert(markdownDocument).toJson());
   }
